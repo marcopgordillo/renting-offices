@@ -3,7 +3,7 @@
 - [x] Seed the initial tags
 - [x] Prepare models
 - [x] Prepare factories
-- [ ] Prepare resources
+- [x] Prepare resources
 - [ ] Tags
     - Routes
     - Controller
