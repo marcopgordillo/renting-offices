@@ -4,5 +4,7 @@ namespace App\Enums;
 
 enum ApprovalStatus: int
 {
-    case APPROVED = 1;
+    case PENDING = 1;
+    case APPROVED = 2;
+    case REJECTED = 3;
 }

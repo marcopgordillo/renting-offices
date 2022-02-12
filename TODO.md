@@ -2,7 +2,7 @@
 - [x] Prepare migrations
 - [x] Seed the initial tags
 - [x] Prepare models
-- [ ] Prepare factories
+- [x] Prepare factories
 - [ ] Prepare resources
 - [ ] Tags
     - Routes

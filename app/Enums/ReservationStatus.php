@@ -4,5 +4,6 @@ namespace App\Enums;
 
 enum ReservationStatus: int
 {
-    case APPROVED = 1;
+    case ACTIVE = 1;
+    case CANCELLED = 2;
 }
