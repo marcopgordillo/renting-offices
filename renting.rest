@@ -1,0 +1,6 @@
+#Variables
+@hostApi=http://localhost
+
+# Get tags
+GET {{hostApi}}/api/v1/tags
+Accept: application/json
