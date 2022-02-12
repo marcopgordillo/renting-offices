@@ -1,7 +1,7 @@
 # TODO 02/11
 - [x] Prepare migrations
 - [x] Seed the initial tags
-- [ ] Prepare models
+- [x] Prepare models
 - [ ] Prepare factories
 - [ ] Prepare resources
 - [ ] Tags
