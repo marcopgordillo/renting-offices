@@ -29,13 +29,6 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
         });
-
-        Schema::create('office_tags', function (Blueprint $table) {
-            $table->foreignId('office_id')->index();
-            $table->foreignId('tag_id')->index();
-
-            $table->unique(['office_id', 'tag_id']);
-        });
     }
 
     /**
@@ -46,6 +39,5 @@ return new class extends Migration
     public function down()
     {
         Schema::dropIfExists('offices');
-        Schema::dropIfExists('office_tags');
     }
 };
