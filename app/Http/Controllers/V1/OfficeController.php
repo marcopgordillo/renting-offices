@@ -9,6 +9,7 @@ use App\Models\Office;
 use App\Http\Resources\V1\OfficeResource;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use App\Enums\ReservationStatus;
 
 class OfficeController extends Controller
 {
@@ -26,6 +27,8 @@ class OfficeController extends Controller
                     fn (Builder $builder) =>
                         $builder->whereRelation('reservations', 'user_id', '=', $request->user_id))
                 ->with(['reservations', 'user', 'images', 'tags'])
+                ->withCount(['reservations' =>
+                    fn (Builder $builder) => $builder->where('status', ReservationStatus::ACTIVE)])
                 ->latest('id')
                 ->paginate(20);
 

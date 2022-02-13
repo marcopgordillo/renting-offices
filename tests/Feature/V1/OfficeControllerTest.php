@@ -8,6 +8,7 @@ use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Testing\Fluent\AssertableJson;
 use Tests\TestCase;
 use App\Enums\ApprovalStatus;
+use App\Enums\ReservationStatus;
 use App\Models\Image;
 use App\Models\Reservation;
 use App\Models\Tag;
@@ -66,6 +67,18 @@ class OfficeControllerTest extends TestCase
      */
     public function it_get_offices_with_approved_status_and_no_hidden()
     {
+
+        Office::factory()
+                    ->hidden()
+                    ->create();
+        Office::factory()
+                    ->pending()
+                    ->create();
+        Office::factory()
+                    ->hidden()
+                    ->pending()
+                    ->create();
+
         $response = $this->getJson('/api/v1/offices');
 
         $response->assertOk()
@@ -73,7 +86,7 @@ class OfficeControllerTest extends TestCase
                     $json->hasAll('data', 'meta', 'links')
                         ->has('data', OfficeSeeder::NR_OFFICES_NO_HIDDEN_NO_PENDING, fn ($json) =>
                             $json->whereType('approval_status', 'integer')
-                                ->where('approval_status', 2)
+                                ->where('approval_status', ApprovalStatus::APPROVED->value)
                                 ->where('hidden', false)
                                 ->etc()
                         )
@@ -119,7 +132,6 @@ class OfficeControllerTest extends TestCase
         $response = $this->getJson("/api/v1/offices?user_id={$user->id}");
 
         $response->assertOk()
-                ->dump()
                 ->assertJson(fn (AssertableJson $json) =>
                     $json->hasAll('data', 'meta', 'links')
                         ->has('data', 1, fn ($json) =>
@@ -157,7 +169,6 @@ class OfficeControllerTest extends TestCase
         $response = $this->getJson("/api/v1/offices");
 
         $response->assertOk()
-                ->dump()
                 ->assertJson(fn (AssertableJson $json) =>
                     $json->hasAll('data', 'meta', 'links')
                         ->has('data', 4, fn ($json) =>
@@ -184,6 +195,45 @@ class OfficeControllerTest extends TestCase
                                 )
                                 ->has('tags', 1, fn ($json) =>
                                     $json->where('id', $tag->id)
+                                        ->etc()
+                                )
+                                ->etc()
+                        )
+                    );
+    }
+
+    /**
+     * @test
+     */
+    public function it_returns_the_number_of_active_reservations()
+    {
+        Office::factory()
+                    ->hasReservations(1, [
+                        'status'    => ReservationStatus::ACTIVE,
+                    ])
+                    ->hasReservations(1, [
+                        'status'    => ReservationStatus::CANCELLED,
+                    ])
+                    // ->has(
+                    //     Reservation::factory()
+                    //         ->state(fn (array $attributes) => ['status' => ReservationStatus::ACTIVE])
+                    // )
+                    // ->has(
+                    //     Reservation::factory()
+                    //         ->state(fn (array $attributes) => ['status' => ReservationStatus::CANCELLED])
+                    // )
+                    ->create();
+
+        $response = $this->getJson("/api/v1/offices");
+
+        $response->assertOk()
+                ->assertJson(fn (AssertableJson $json) =>
+                    $json->hasAll('data', 'meta', 'links')
+                        ->has('data', 4, fn ($json) =>
+                            $json
+                                ->where('reservations_count', 1)
+                                ->has('reservations', 2, fn ($json) =>
+                                    $json->where('status', ReservationStatus::ACTIVE->value)
                                         ->etc()
                                 )
                                 ->etc()
