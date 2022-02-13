@@ -1,6 +1,6 @@
 #Variables
-@hostApi=http://localhost
+# @hostApi=localhost
 
-# Get tags
-GET {{hostApi}}/api/v1/tags
+### Get tags
+GET http://{{hostApi}}/api/{{version}}/tags
 Accept: application/json
