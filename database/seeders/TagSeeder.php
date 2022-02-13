@@ -8,6 +8,7 @@ use Illuminate\Database\Seeder;
 
 class TagSeeder extends Seeder
 {
+    const NUMBER_OF_TAGS = 3;
     /**
      * Run the database seeds.
      *

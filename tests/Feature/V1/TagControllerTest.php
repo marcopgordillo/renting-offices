@@ -3,6 +3,7 @@
 namespace Tests\Feature\V1;
 
 use App\Models\Tag;
+use Database\Seeders\TagSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
@@ -11,12 +12,10 @@ class TagControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-    const NUMBER_OF_TAGS = 3;
-
     public function setUp(): void
     {
         parent::setUp();
-        Tag::factory(self::NUMBER_OF_TAGS)->create();
+        // Tag::factory(self::NUMBER_OF_TAGS)->create();
     }
     /**
      * @test
@@ -27,7 +26,7 @@ class TagControllerTest extends TestCase
 
         $response->assertOk();
 
-        $this->assertCount(self::NUMBER_OF_TAGS, $response->json('data'));
+        $this->assertCount(TagSeeder::NUMBER_OF_TAGS, $response->json('data'));
         $this->assertNotNull($response->json('data')[0]['id']);
     }
 }

@@ -16,10 +16,12 @@ class OfficeControllerTest extends TestCase
 {
     use RefreshDatabase;
 
+    // protected $seeder = OfficeSeeder::class;
+
     public function setUp(): void
     {
         parent::setUp();
-        $this->seed(OfficeSeeder::class);
+        // $this->seed(OfficeSeeder::class);
     }
 
     /**
@@ -32,7 +34,7 @@ class OfficeControllerTest extends TestCase
         // $this->assertCount(self::NUMBER_OF_OFFICES, $response->json('data'));
         // $this->assertNotNull($response->json('data')[0]['id']);
 
-        $response->assertOk()->dump()
+        $response->assertOk()
                 ->assertJsonCount(OfficeSeeder::NR_OFFICES_NO_HIDDEN_NO_PENDING, 'data')
                 ->assertJsonPath('data.0.id', 3);
     }
@@ -44,7 +46,8 @@ class OfficeControllerTest extends TestCase
     {
         $response = $this->getJson('/api/v1/offices');
 
-        $response->assertJson(fn (AssertableJson $json) =>
+        $response->assertOk()
+                ->assertJson(fn (AssertableJson $json) =>
                     $json->hasAll('data', 'meta', 'links')
                         ->has('data', OfficeSeeder::NR_OFFICES_NO_HIDDEN_NO_PENDING, fn ($json) =>
                             $json->whereType('id', 'integer')

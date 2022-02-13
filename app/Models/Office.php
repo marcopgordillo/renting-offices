@@ -28,6 +28,12 @@ class Office extends Model
         'hidden'            => 'boolean',
     ];
 
+    public function scopePublic($query)
+    {
+        return $query->where('hidden', false)
+                    ->where('approval_status', ApprovalStatus::APPROVED);
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
