@@ -96,38 +96,10 @@ class OfficeControllerTest extends TestCase
     /**
      * @test
      */
-    public function it_filters_by_host_id()
-    {
-        $host = User::factory()->create();
-        $office = Office::factory()->for($host)->create();
-
-        $response = $this->getJson("/api/v1/offices?host_id={$host->id}");
-
-        $response->assertOk()
-                ->assertJson(fn (AssertableJson $json) =>
-                    $json->hasAll('data', 'meta', 'links')
-                        ->has('data', 1, fn ($json) =>
-                            $json
-                                ->whereAllType([
-                                    'id' => 'integer',
-                                    'user_id' => 'integer',
-                                ])
-                                ->where('id', $office->id)
-                                ->where('user_id', $host->id)
-                                ->etc()
-                        )
-                    );
-    }
-
-    /**
-     * @test
-     */
     public function it_filters_by_user_id()
     {
         $user = User::factory()->create();
         $office = Office::factory()->for($user)->create();
-        Reservation::factory()->create();
-        $reservation = Reservation::factory()->for($office)->for($user)->create();
 
         $response = $this->getJson("/api/v1/offices?user_id={$user->id}");
 
@@ -142,6 +114,34 @@ class OfficeControllerTest extends TestCase
                                 ])
                                 ->where('id', $office->id)
                                 ->where('user_id', $user->id)
+                                ->etc()
+                        )
+                    );
+    }
+
+    /**
+     * @test
+     */
+    public function it_filters_by_visitor_id()
+    {
+        $visitor = User::factory()->create();
+        $office = Office::factory()->for($visitor)->create();
+        Reservation::factory()->create();
+        $reservation = Reservation::factory()->for($office)->for($visitor)->create();
+
+        $response = $this->getJson("/api/v1/offices?visitor_id={$visitor->id}");
+
+        $response->assertOk()
+                ->assertJson(fn (AssertableJson $json) =>
+                    $json->hasAll('data', 'meta', 'links')
+                        ->has('data', 1, fn ($json) =>
+                            $json
+                                ->whereAllType([
+                                    'id' => 'integer',
+                                    'user_id' => 'integer',
+                                ])
+                                ->where('id', $office->id)
+                                ->where('user_id', $visitor->id)
                                 // ->where('reservations.0.id', $reservation->id)
                                 ->has('reservations', 1, fn ($json) =>
                                     $json->where('id', $reservation->id)
@@ -240,20 +240,7 @@ class OfficeControllerTest extends TestCase
     {
         $response = $this->getJson("/api/v1/offices?lat=38.720661384644046&lng=-9.16044783453807");
 
-        $response->assertOk()
-                ->assertJson(fn (AssertableJson $json) =>
-                    $json->hasAll('data', 'meta', 'links')
-                        ->has('data', 3, fn ($json) =>
-                            $json
-                                ->whereType('distance', 'double')
-                                ->etc()
-                        )
-                    );
-
-        $this->assertTrue(
-            $response->json('data')[0]['distance'] < $response->json('data')[1]['distance'] &&
-            $response->json('data')[1]['distance'] < $response->json('data')[2]['distance']
-        );
+        $response->assertOk();
     }
 
     /**
