@@ -15,8 +15,6 @@ use App\Models\Tag;
 use App\Models\User;
 use Database\Seeders\OfficeSeeder;
 
-use function PHPUnit\Framework\assertNotNull;
-
 class OfficeControllerTest extends TestCase
 {
     use RefreshDatabase;
@@ -108,12 +106,9 @@ class OfficeControllerTest extends TestCase
                     $json->hasAll('data', 'meta', 'links')
                         ->has('data', 1, fn ($json) =>
                             $json
-                                ->whereAllType([
-                                    'id' => 'integer',
-                                    'user_id' => 'integer',
-                                ])
+                                ->whereType('id', 'integer')
                                 ->where('id', $office->id)
-                                ->where('user_id', $user->id)
+                                ->missingAll('user_id', 'created_at', 'updated_at', 'deleted_at')
                                 ->etc()
                         )
                     );
@@ -136,12 +131,8 @@ class OfficeControllerTest extends TestCase
                     $json->hasAll('data', 'meta', 'links')
                         ->has('data', 1, fn ($json) =>
                             $json
-                                ->whereAllType([
-                                    'id' => 'integer',
-                                    'user_id' => 'integer',
-                                ])
+                                ->whereType('id', 'integer')
                                 ->where('id', $office->id)
-                                ->where('user_id', $visitor->id)
                                 // ->where('reservations.0.id', $reservation->id)
                                 ->has('reservations', 1, fn ($json) =>
                                     $json->where('id', $reservation->id)
@@ -175,14 +166,12 @@ class OfficeControllerTest extends TestCase
                             $json
                                 ->whereAllType([
                                     'id'        => 'integer',
-                                    'user_id'   => 'integer',
                                     'tags'      => 'array',
                                     'reservations'  => 'array',
                                     'images'    => 'array',
                                     'user'    => 'array',
                                 ])
                                 ->where('id', $office->id)
-                                ->where('user_id', $user->id)
                                 // ->where('reservations.0.id', $reservation->id)
                                 ->where('user.id', $user->id)
                                 ->has('reservations', 1, fn ($json) =>
@@ -261,14 +250,12 @@ class OfficeControllerTest extends TestCase
         $response = $this->getJson("/api/v1/offices/{$office->id}");
 
         $response->assertOk()
-                // ->dump()
                 ->assertJson(fn (AssertableJson $json) =>
                     $json
                         ->has('data', fn ($json) =>
                             $json
                                 ->where('reservations_count', 3)
                                 ->where('id', $office->id)
-                                ->where('user_id', $user->id)
                                 ->where('user.id', $user->id)
                                 ->has('reservations', 3, fn ($json) =>
                                     $json->where('id', $reservation->id)

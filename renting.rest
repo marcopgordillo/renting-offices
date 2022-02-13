@@ -4,3 +4,7 @@
 ### Get tags
 GET http://{{hostApi}}/api/{{version}}/tags
 Accept: application/json
+
+### Get offices
+GET http://{{hostApi}}/api/{{version}}/offices
+Accept: application/json
