@@ -7,6 +7,7 @@ use App\Http\Requests\StoreOfficeRequest;
 use App\Http\Requests\UpdateOfficeRequest;
 use App\Models\Office;
 use App\Http\Resources\V1\OfficeResource;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
 class OfficeController extends Controller
@@ -20,7 +21,11 @@ class OfficeController extends Controller
     {
         $offices = Office::query()
                 ->public()
-                ->when($request->host_id, fn ($builder) => $builder->whereUserId($request->host_id))
+                ->when($request->host_id, fn (Builder $builder) => $builder->whereUserId($request->host_id))
+                ->when($request->user_id,
+                    fn (Builder $builder) =>
+                        $builder->whereRelation('reservations', 'user_id', '=', $request->user_id))
+                ->with('reservations')
                 ->latest('id')
                 ->paginate(20);
 

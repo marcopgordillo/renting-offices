@@ -8,6 +8,7 @@ use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Testing\Fluent\AssertableJson;
 use Tests\TestCase;
 use App\Enums\ApprovalStatus;
+use App\Models\Reservation;
 use App\Models\User;
 use Database\Seeders\OfficeSeeder;
 
@@ -88,7 +89,6 @@ class OfficeControllerTest extends TestCase
         $response = $this->getJson("/api/v1/offices?host_id={$host->id}");
 
         $response->assertOk()
-                ->dump()
                 ->assertJson(fn (AssertableJson $json) =>
                     $json->hasAll('data', 'meta', 'links')
                         ->has('data', 1, fn ($json) =>
@@ -99,6 +99,40 @@ class OfficeControllerTest extends TestCase
                                 ])
                                 ->where('id', $office->id)
                                 ->where('user_id', $host->id)
+                                ->etc()
+                        )
+                    );
+    }
+
+    /**
+     * @test
+     */
+    public function it_filters_by_user_id()
+    {
+        $user = User::factory()->create();
+        $office = Office::factory()->for($user)->create();
+        Reservation::factory()->create();
+        $reservation = Reservation::factory()->for($office)->for($user)->create();
+
+        $response = $this->getJson("/api/v1/offices?user_id={$user->id}");
+
+        $response->assertOk()
+                // ->dump()
+                ->assertJson(fn (AssertableJson $json) =>
+                    $json->hasAll('data', 'meta', 'links')
+                        ->has('data', 1, fn ($json) =>
+                            $json
+                                ->whereAllType([
+                                    'id' => 'integer',
+                                    'user_id' => 'integer',
+                                ])
+                                ->where('id', $office->id)
+                                ->where('user_id', $user->id)
+                                // ->where('reservations.0.id', $reservation->id)
+                                ->has('reservations', 1, fn ($json) =>
+                                    $json->where('id', $reservation->id)
+                                        ->etc()
+                                )
                                 ->etc()
                         )
                     );
