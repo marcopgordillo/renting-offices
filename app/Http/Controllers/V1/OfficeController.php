@@ -25,7 +25,7 @@ class OfficeController extends Controller
                 ->when($request->user_id,
                     fn (Builder $builder) =>
                         $builder->whereRelation('reservations', 'user_id', '=', $request->user_id))
-                ->with('reservations')
+                ->with(['reservations', 'user', 'images', 'tags'])
                 ->latest('id')
                 ->paginate(20);
 
