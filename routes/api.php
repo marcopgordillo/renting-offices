@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\V1\TagController;
+use App\Http\Controllers\V1\OfficeController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -20,5 +21,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::prefix('v1')->group(function() {
-    Route::get('/tags', TagController::class);
+    // Tags...
+    Route::get('/tags', TagController::class)->name('tags.index');
+
+    // Offices...
+    Route::apiResource('/offices', OfficeController::class);
 });

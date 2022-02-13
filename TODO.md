@@ -4,7 +4,7 @@
 - [x] Prepare models
 - [x] Prepare factories
 - [x] Prepare resources
-- [ ] Tags
+- [x] Tags
     - Routes
     - Controller
     - Tests
@@ -12,3 +12,9 @@
     - List offices
     - Read office
     - Create office
+
+# TODO 02/12
+- [ ] Filter the offices returned
+- [ ] Paginate the list offices endpoint
+- [ ] Show office endpoint
+- [ ] Create office endpoint
