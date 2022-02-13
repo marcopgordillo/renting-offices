@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Enums\ApprovalStatus;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
@@ -28,10 +29,20 @@ class Office extends Model
         'hidden'            => 'boolean',
     ];
 
-    public function scopePublic($query)
+    public function scopePublic(Builder $query)
     {
         return $query->where('hidden', false)
                     ->where('approval_status', ApprovalStatus::APPROVED);
+    }
+
+    public function scopeNearestTo(Builder $builder, $lat, $lng)
+    {
+        return $builder
+            ->select()
+            ->selectRaw(
+                "SQRT(POW(69.1 * (lat - ?), 2) + POW(69.1 * (? - lng) * COS(lat / 57.3), 2)) AS distance",
+                [$lat, $lng]
+            )->orderBy('distance');
     }
 
     public function user(): BelongsTo

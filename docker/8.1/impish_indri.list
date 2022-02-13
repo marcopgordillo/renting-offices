@@ -1,0 +1,8 @@
+deb http://it.archive.ubuntu.com/ubuntu/ impish main universe restricted multiverse
+#deb-src http://it.archive.ubuntu.com/ubuntu/ impish main universe restricted multiverse
+
+deb http://security.ubuntu.com/ubuntu impish-security main universe restricted multiverse
+#deb-src http://security.ubuntu.com/ubuntu impish-security main universe restricted multiverse
+
+deb http://it.archive.ubuntu.com/ubuntu/ impish-updates main universe restricted multiverse
+#deb-src http://it.archive.ubuntu.com/ubuntu/ impish-updates main universe restricted multiverse

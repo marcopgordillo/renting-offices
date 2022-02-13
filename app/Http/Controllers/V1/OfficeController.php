@@ -26,10 +26,13 @@ class OfficeController extends Controller
                 ->when($request->user_id,
                     fn (Builder $builder) =>
                         $builder->whereRelation('reservations', 'user_id', '=', $request->user_id))
+                ->when($request->lat && $request->lng,
+                    fn (Builder $builder) => $builder->nearestTo($request->lat, $request->lng),
+                    fn (Builder $builder) => $builder->orderBy('id', 'DESC')
+                )
                 ->with(['reservations', 'user', 'images', 'tags'])
                 ->withCount(['reservations' =>
                     fn (Builder $builder) => $builder->where('status', ReservationStatus::ACTIVE)])
-                ->latest('id')
                 ->paginate(20);
 
         return OfficeResource::collection($offices);

@@ -214,14 +214,6 @@ class OfficeControllerTest extends TestCase
                     ->hasReservations(1, [
                         'status'    => ReservationStatus::CANCELLED,
                     ])
-                    // ->has(
-                    //     Reservation::factory()
-                    //         ->state(fn (array $attributes) => ['status' => ReservationStatus::ACTIVE])
-                    // )
-                    // ->has(
-                    //     Reservation::factory()
-                    //         ->state(fn (array $attributes) => ['status' => ReservationStatus::CANCELLED])
-                    // )
                     ->create();
 
         $response = $this->getJson("/api/v1/offices");
@@ -239,5 +231,29 @@ class OfficeControllerTest extends TestCase
                                 ->etc()
                         )
                     );
+    }
+
+    /**
+     * @test
+     */
+    public function it_orders_by_distance_when_coordinates_are_provided()
+    {
+        $response = $this->getJson("/api/v1/offices?lat=38.720661384644046&lng=-9.16044783453807");
+
+        $response->assertOk()
+                ->dump()
+                ->assertJson(fn (AssertableJson $json) =>
+                    $json->hasAll('data', 'meta', 'links')
+                        ->has('data', 3, fn ($json) =>
+                            $json
+                                ->whereType('distance', 'double')
+                                ->etc()
+                        )
+                    );
+
+        $this->assertTrue(
+            $response->json('data')[0]['distance'] < $response->json('data')[1]['distance'] &&
+            $response->json('data')[1]['distance'] < $response->json('data')[2]['distance']
+        );
     }
 }
