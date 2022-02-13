@@ -57,7 +57,12 @@ class OfficeController extends Controller
      */
     public function show(Office $office)
     {
-        //
+        $office
+            ->loadCount(['reservations' =>
+                    fn (Builder $builder) => $builder->where('status', ReservationStatus::ACTIVE)])
+            ->load(['reservations', 'user', 'images', 'tags']);
+
+        return OfficeResource::make($office);
     }
 
     /**

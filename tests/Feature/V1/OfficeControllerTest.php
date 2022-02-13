@@ -241,7 +241,6 @@ class OfficeControllerTest extends TestCase
         $response = $this->getJson("/api/v1/offices?lat=38.720661384644046&lng=-9.16044783453807");
 
         $response->assertOk()
-                ->dump()
                 ->assertJson(fn (AssertableJson $json) =>
                     $json->hasAll('data', 'meta', 'links')
                         ->has('data', 3, fn ($json) =>
@@ -255,5 +254,45 @@ class OfficeControllerTest extends TestCase
             $response->json('data')[0]['distance'] < $response->json('data')[1]['distance'] &&
             $response->json('data')[1]['distance'] < $response->json('data')[2]['distance']
         );
+    }
+
+    /**
+     * @test
+     */
+    public function it_shows_the_office()
+    {
+        $user = User::factory()->create();
+        $tag = Tag::factory()->create();
+        $office = Office::factory()->for($user)->has(Image::factory())->create();
+
+        $office->tags()->attach($tag);
+        // $office->images()->create(['path' => 'image.jpg']);
+
+        $reservation = Reservation::factory()->for($office)->for($user)->create();
+        Reservation::factory(2)->for($office)->for($user)->create();
+
+        $response = $this->getJson("/api/v1/offices/{$office->id}");
+
+        $response->assertOk()
+                ->dump()
+                ->assertJson(fn (AssertableJson $json) =>
+                    $json
+                        ->has('data', fn ($json) =>
+                            $json
+                                ->where('reservations_count', 3)
+                                ->where('id', $office->id)
+                                ->where('user_id', $user->id)
+                                ->where('user.id', $user->id)
+                                ->has('reservations', 3, fn ($json) =>
+                                    $json->where('id', $reservation->id)
+                                        ->etc()
+                                )
+                                ->has('images', 1, fn ($json) =>
+                                    $json->where('id', $office->images[0]->id)
+                                        ->etc()
+                                )
+                                ->etc()
+                        )
+                    );
     }
 }
