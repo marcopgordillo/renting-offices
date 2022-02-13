@@ -160,6 +160,7 @@ class OfficeControllerTest extends TestCase
         $response = $this->getJson("/api/v1/offices");
 
         $response->assertOk()
+                ->dump()
                 ->assertJson(fn (AssertableJson $json) =>
                     $json->hasAll('data', 'meta', 'links')
                         ->has('data', 4, fn ($json) =>
