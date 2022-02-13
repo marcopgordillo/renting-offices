@@ -7,6 +7,7 @@ use App\Http\Requests\StoreOfficeRequest;
 use App\Http\Requests\UpdateOfficeRequest;
 use App\Models\Office;
 use App\Http\Resources\V1\OfficeResource;
+use App\Enums\ApprovalStatus;
 
 class OfficeController extends Controller
 {
@@ -18,8 +19,10 @@ class OfficeController extends Controller
     public function index()
     {
         $offices = Office::query()
+                ->where('approval_status', ApprovalStatus::APPROVED)
+                ->where('hidden', false)
                 ->latest('id')
-                ->get();
+                ->paginate(20);
 
         return OfficeResource::collection($offices);
     }

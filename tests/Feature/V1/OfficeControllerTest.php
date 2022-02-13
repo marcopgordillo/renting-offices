@@ -7,18 +7,21 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Testing\Fluent\AssertableJson;
 use Tests\TestCase;
+use App\Enums\ApprovalStatus;
+use Database\Seeders\OfficeSeeder;
+
+use function PHPUnit\Framework\assertNotNull;
 
 class OfficeControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-    const NUMBER_OF_OFFICES = 3;
-
     public function setUp(): void
     {
         parent::setUp();
-        Office::factory(self::NUMBER_OF_OFFICES)->create();
+        $this->seed(OfficeSeeder::class);
     }
+
     /**
      * @test
      */
@@ -29,14 +32,45 @@ class OfficeControllerTest extends TestCase
         // $this->assertCount(self::NUMBER_OF_OFFICES, $response->json('data'));
         // $this->assertNotNull($response->json('data')[0]['id']);
 
+        $response->assertOk()->dump()
+                ->assertJsonCount(OfficeSeeder::NR_OFFICES_NO_HIDDEN_NO_PENDING, 'data')
+                ->assertJsonPath('data.0.id', 3);
+    }
+
+    /**
+     * @test
+     */
+    public function it_get_offices_paginated()
+    {
+        $response = $this->getJson('/api/v1/offices');
+
+        $response->assertJson(fn (AssertableJson $json) =>
+                    $json->hasAll('data', 'meta', 'links')
+                        ->has('data', OfficeSeeder::NR_OFFICES_NO_HIDDEN_NO_PENDING, fn ($json) =>
+                            $json->whereType('id', 'integer')
+                                ->where('id', 3)
+                                ->etc()
+                        )
+                    );
+    }
+
+    /**
+     * @test
+     */
+    public function it_get_offices_with_approved_status_and_no_hidden()
+    {
+        $response = $this->getJson('/api/v1/offices');
+
         $response->assertOk()
-                ->assertJsonCount(self::NUMBER_OF_OFFICES, 'data')
-                ->assertJsonPath('data.0.id', 3)
+                // ->dump()
                 ->assertJson(fn (AssertableJson $json) =>
-                    $json->has('data', self::NUMBER_OF_OFFICES, fn ($json) =>
-                        $json->where('id', 3)
-                            ->etc()
-                )
-        );
+                    $json->hasAll('data', 'meta', 'links')
+                        ->has('data', OfficeSeeder::NR_OFFICES_NO_HIDDEN_NO_PENDING, fn ($json) =>
+                            $json->whereType('approval_status', 'integer')
+                                ->where('approval_status', 2)
+                                ->where('hidden', false)
+                                ->etc()
+                        )
+                    );
     }
 }
