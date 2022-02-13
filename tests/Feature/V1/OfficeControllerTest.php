@@ -8,6 +8,7 @@ use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Testing\Fluent\AssertableJson;
 use Tests\TestCase;
 use App\Enums\ApprovalStatus;
+use App\Models\User;
 use Database\Seeders\OfficeSeeder;
 
 use function PHPUnit\Framework\assertNotNull;
@@ -65,13 +66,39 @@ class OfficeControllerTest extends TestCase
         $response = $this->getJson('/api/v1/offices');
 
         $response->assertOk()
-                // ->dump()
                 ->assertJson(fn (AssertableJson $json) =>
                     $json->hasAll('data', 'meta', 'links')
                         ->has('data', OfficeSeeder::NR_OFFICES_NO_HIDDEN_NO_PENDING, fn ($json) =>
                             $json->whereType('approval_status', 'integer')
                                 ->where('approval_status', 2)
                                 ->where('hidden', false)
+                                ->etc()
+                        )
+                    );
+    }
+
+    /**
+     * @test
+     */
+    public function it_filters_by_host_id()
+    {
+        $host = User::factory()->create();
+        $office = Office::factory()->for($host)->create();
+
+        $response = $this->getJson("/api/v1/offices?host_id={$host->id}");
+
+        $response->assertOk()
+                ->dump()
+                ->assertJson(fn (AssertableJson $json) =>
+                    $json->hasAll('data', 'meta', 'links')
+                        ->has('data', 1, fn ($json) =>
+                            $json
+                                ->whereAllType([
+                                    'id' => 'integer',
+                                    'user_id' => 'integer',
+                                ])
+                                ->where('id', $office->id)
+                                ->where('user_id', $host->id)
                                 ->etc()
                         )
                     );

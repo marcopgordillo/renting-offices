@@ -7,6 +7,7 @@ use App\Http\Requests\StoreOfficeRequest;
 use App\Http\Requests\UpdateOfficeRequest;
 use App\Models\Office;
 use App\Http\Resources\V1\OfficeResource;
+use Illuminate\Http\Request;
 
 class OfficeController extends Controller
 {
@@ -15,10 +16,11 @@ class OfficeController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         $offices = Office::query()
                 ->public()
+                ->when($request->host_id, fn ($builder) => $builder->whereUserId($request->host_id))
                 ->latest('id')
                 ->paginate(20);
 
