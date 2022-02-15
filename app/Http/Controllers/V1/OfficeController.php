@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\V1;
 
+use App\Enums\ApprovalStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreOfficeRequest;
 use App\Http\Requests\UpdateOfficeRequest;
@@ -10,9 +11,16 @@ use App\Http\Resources\V1\OfficeResource;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use App\Enums\ReservationStatus;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Auth;
 
 class OfficeController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['auth:sanctum', 'verified'])->only(['store', 'update', 'destroy']);
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -46,7 +54,16 @@ class OfficeController extends Controller
      */
     public function store(StoreOfficeRequest $request)
     {
-        //
+        $office = Auth::user()->offices()->create(
+            [
+                'approval_status'   => ApprovalStatus::PENDING,
+                ...Arr::except($request->validated(), ['tags'])
+            ]
+        );
+
+        $office->tags()->sync($request->validated('tags'));
+
+        return OfficeResource::make($office);
     }
 
     /**

@@ -18,6 +18,7 @@ use Database\Seeders\OfficeSeeder;
 class OfficeControllerTest extends TestCase
 {
     use RefreshDatabase;
+    use WithFaker;
 
     // protected $seeder = OfficeSeeder::class;
 
@@ -160,7 +161,6 @@ class OfficeControllerTest extends TestCase
         $response = $this->getJson("/api/v1/offices");
 
         $response->assertOk()
-                ->dump()
                 ->assertJson(fn (AssertableJson $json) =>
                     $json->hasAll('data', 'meta', 'links')
                         ->has('data', 4, fn ($json) =>
@@ -269,5 +269,39 @@ class OfficeControllerTest extends TestCase
                                 ->etc()
                         )
                     );
+    }
+
+    /**
+     * @test
+     */
+    public function it_should_create_an_office()
+    {
+        $user = User::factory()->createQuietly();
+        $tags = Tag::factory(2)->create();
+
+        $tagIds = $tags->map(fn ($tag) => $tag->id)->flatten()->all();
+
+        $this->actingAs($user);
+
+        $response = $this->postJson('/api/v1/offices', [
+            'title'             => $this->faker->sentence,
+            'description'       => $this->faker->paragraph,
+            'lat'               => $this->faker->latitude,
+            'lng'               => $this->faker->longitude,
+            'address_line1'     => $this->faker->address,
+            'hidden'            => false,
+            'price_per_day'     => $this->faker->numberBetween(1_000, 4_000),
+            'monthly_discount'  => $this->faker->numberBetween(0, 50),
+            'tags'              => [...$tagIds],
+        ]);
+
+        $response->assertCreated()
+                ->assertJsonPath('data.approval_status', ApprovalStatus::PENDING->value)
+                ->assertJsonPath('data.user.id', $user->id)
+                ->assertJsonCount(2, 'data.tags');
+
+        $this->assertDatabaseHas('offices', [
+            'id'    => $response->json('data')['id'],
+        ]);
     }
 }
