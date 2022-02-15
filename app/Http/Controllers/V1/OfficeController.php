@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use App\Enums\ReservationStatus;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class OfficeController extends Controller
 {
@@ -54,14 +55,18 @@ class OfficeController extends Controller
      */
     public function store(StoreOfficeRequest $request)
     {
-        $office = Auth::user()->offices()->create(
-            [
-                'approval_status'   => ApprovalStatus::PENDING,
-                ...Arr::except($request->validated(), ['tags'])
-            ]
-        );
+        $office = DB::transaction(function () use($request) {
+            $office = Auth::user()->offices()->create(
+                [
+                    'approval_status'   => ApprovalStatus::PENDING,
+                    ...Arr::except($request->validated(), ['tags'])
+                ]
+            );
 
-        $office->tags()->sync($request->validated('tags'));
+            $office->tags()->attach($request->validated('tags'));
+
+            return $office;
+        });
 
         return OfficeResource::make($office);
     }
