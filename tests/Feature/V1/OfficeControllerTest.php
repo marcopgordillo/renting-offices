@@ -14,6 +14,7 @@ use App\Models\Reservation;
 use App\Models\Tag;
 use App\Models\User;
 use Database\Seeders\OfficeSeeder;
+use Illuminate\Http\Response;
 
 class OfficeControllerTest extends TestCase
 {
@@ -303,5 +304,21 @@ class OfficeControllerTest extends TestCase
         $this->assertDatabaseHas('offices', [
             'id'    => $response->json('data')['id'],
         ]);
+    }
+
+    /**
+     * @test
+     */
+    public function it_doesnt_allow_create_office_if_scope_is_not_provided()
+    {
+        $user = User::factory()->createQuietly();
+
+        $token = $user->createToken('test', []);
+
+        $response = $this->postJson('/api/v1/offices', [], [
+            'Authorization'     => "Bearer {$token->plainTextToken}",
+        ]);
+
+        $response->assertStatus(Response::HTTP_FORBIDDEN);
     }
 }
