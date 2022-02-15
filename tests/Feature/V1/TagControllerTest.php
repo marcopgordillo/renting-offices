@@ -23,6 +23,7 @@ class TagControllerTest extends TestCase
     public function it_get_tags()
     {
         $response = $this->get('/api/v1/tags');
+        $response = $this->get(route('tags.index'));
 
         $response->assertOk();
 

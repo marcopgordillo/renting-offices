@@ -34,7 +34,8 @@ class OfficeControllerTest extends TestCase
      */
     public function it_get_offices()
     {
-        $response = $this->getJson('/api/v1/offices');
+        // $response = $this->getJson('/api/v1/offices');
+        $response = $this->getJson(route('offices.index'));
 
         // $this->assertCount(self::NUMBER_OF_OFFICES, $response->json('data'));
         // $this->assertNotNull($response->json('data')[0]['id']);
@@ -49,7 +50,7 @@ class OfficeControllerTest extends TestCase
      */
     public function it_get_offices_paginated()
     {
-        $response = $this->getJson('/api/v1/offices');
+        $response = $this->getJson(route('offices.index'));
 
         $response->assertOk()
                 ->assertJson(fn (AssertableJson $json) =>
@@ -79,7 +80,7 @@ class OfficeControllerTest extends TestCase
                     ->pending()
                     ->create();
 
-        $response = $this->getJson('/api/v1/offices');
+        $response = $this->getJson(route('offices.index'));
 
         $response->assertOk()
                 ->assertJson(fn (AssertableJson $json) =>
@@ -101,7 +102,9 @@ class OfficeControllerTest extends TestCase
         $user = User::factory()->create();
         $office = Office::factory()->for($user)->create();
 
-        $response = $this->getJson("/api/v1/offices?user_id={$user->id}");
+        $response = $this->getJson(route('offices.index', [
+            'user_id' => $user->id
+        ]));
 
         $response->assertOk()
                 ->assertJson(fn (AssertableJson $json) =>
@@ -127,6 +130,9 @@ class OfficeControllerTest extends TestCase
         $reservation = Reservation::factory()->for($office)->for($visitor)->create();
 
         $response = $this->getJson("/api/v1/offices?visitor_id={$visitor->id}");
+        $response = $this->getJson(route('offices.index', [
+            'visitor_id' => $visitor->id
+        ]));
 
         $response->assertOk()
                 ->assertJson(fn (AssertableJson $json) =>
@@ -152,14 +158,17 @@ class OfficeControllerTest extends TestCase
     {
         $user = User::factory()->create();
         $tag = Tag::factory()->create();
-        $office = Office::factory()->for($user)->has(Image::factory())->create();
+        $office = Office::factory()
+                        ->for($user)
+                        ->has(Image::factory())
+                        ->create();
 
         $office->tags()->attach($tag);
         // $office->images()->create(['path' => 'image.jpg']);
 
         $reservation = Reservation::factory()->for($office)->for($user)->create();
 
-        $response = $this->getJson("/api/v1/offices");
+        $response = $this->getJson(route('offices.index'));
 
         $response->assertOk()
                 ->assertJson(fn (AssertableJson $json) =>
@@ -207,7 +216,7 @@ class OfficeControllerTest extends TestCase
                     ])
                     ->create();
 
-        $response = $this->getJson("/api/v1/offices");
+        $response = $this->getJson(route('offices.index'));
 
         $response->assertOk()
                 ->assertJson(fn (AssertableJson $json) =>
@@ -229,7 +238,11 @@ class OfficeControllerTest extends TestCase
      */
     public function it_orders_by_distance_when_coordinates_are_provided()
     {
-        $response = $this->getJson("/api/v1/offices?lat=38.720661384644046&lng=-9.16044783453807");
+        // $response = $this->getJson("/api/v1/offices?lat=38.720661384644046&lng=-9.16044783453807");
+        $response = $this->getJson(route('offices.index', [
+            'lat'   => 38.720661384644046,
+            'lng'   => -9.16044783453807,
+        ]));
 
         $response->assertOk();
     }
@@ -249,7 +262,8 @@ class OfficeControllerTest extends TestCase
         $reservation = Reservation::factory()->for($office)->for($user)->create();
         Reservation::factory(2)->for($office)->for($user)->create();
 
-        $response = $this->getJson("/api/v1/offices/{$office->id}");
+        // $response = $this->getJson("/api/v1/offices/{$office->id}");
+        $response = $this->getJson(route('offices.show', $office));
 
         $response->assertOk()
                 ->assertJson(fn (AssertableJson $json) =>
@@ -284,7 +298,7 @@ class OfficeControllerTest extends TestCase
 
         $this->actingAs($user);
 
-        $response = $this->postJson('/api/v1/offices', [
+        $response = $this->postJson(route('offices.store'), [
             'title'             => $this->faker->sentence,
             'description'       => $this->faker->paragraph,
             'lat'               => $this->faker->latitude,
@@ -315,7 +329,7 @@ class OfficeControllerTest extends TestCase
 
         $token = $user->createToken('test', []);
 
-        $response = $this->postJson('/api/v1/offices', [], [
+        $response = $this->postJson(route('offices.store'), [], [
             'Authorization'     => "Bearer {$token->plainTextToken}",
         ]);
 
