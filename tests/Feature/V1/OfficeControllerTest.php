@@ -294,8 +294,6 @@ class OfficeControllerTest extends TestCase
         $user = User::factory()->createQuietly();
         $tags = Tag::factory(2)->create();
 
-        $tagIds = $tags->map(fn ($tag) => $tag->id)->flatten()->all();
-
         $this->actingAs($user);
 
         $response = $this->postJson(route('offices.store'), [
@@ -307,7 +305,7 @@ class OfficeControllerTest extends TestCase
             'hidden'            => false,
             'price_per_day'     => $this->faker->numberBetween(1_000, 4_000),
             'monthly_discount'  => $this->faker->numberBetween(0, 50),
-            'tags'              => [...$tagIds],
+            'tags'              => $tags->pluck('id')->toArray(),
         ]);
 
         $response->assertCreated()
@@ -334,5 +332,47 @@ class OfficeControllerTest extends TestCase
         ]);
 
         $response->assertStatus(Response::HTTP_FORBIDDEN);
+    }
+
+    /**
+     * @test
+     */
+    public function it_updates_an_office()
+    {
+        $TITLE_UPDATED = 'Title updated!';
+        $user = User::factory()->createQuietly();
+        $tags = Tag::factory(2)->create();
+        $office = Office::factory()->for($user)->create();
+        $office->tags()->attach($tags);
+
+        $this->actingAs($user);
+
+        $response = $this->putJson(route('offices.update', $office), [
+            'title'             => $TITLE_UPDATED,
+        ]);
+
+        $response->assertOk()
+                ->assertJsonPath('data.title', $TITLE_UPDATED)
+                ->assertJsonCount(2, 'data.tags');
+
+    }
+
+    /**
+     * @test
+     */
+    public function it_doesnt_update_an_office_that_doesnt_belong_to_user()
+    {
+        $TITLE_UPDATED = 'Title updated!';
+        $user = User::factory()->createQuietly();
+        $anotherUser = User::factory()->createQuietly();
+        $office = Office::factory()->for($anotherUser)->create();
+
+        $this->actingAs($user);
+
+        $response = $this->putJson(route('offices.update', $office), [
+            'title'             => $TITLE_UPDATED,
+        ]);
+
+        $response->assertForbidden();
     }
 }

@@ -53,7 +53,7 @@ class OfficePolicy
      */
     public function update(User $user, Office $office)
     {
-        //
+        return $user->id === $office->user->id && $user->tokenCan('offices.update');
     }
 
     /**

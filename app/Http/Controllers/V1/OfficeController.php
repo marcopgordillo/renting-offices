@@ -11,6 +11,7 @@ use App\Http\Resources\V1\OfficeResource;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use App\Enums\ReservationStatus;
+use App\Models\User;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -68,7 +69,9 @@ class OfficeController extends Controller
             return $office;
         });
 
-        return OfficeResource::make($office);
+        return OfficeResource::make(
+            $office->load(['images', 'tags', 'user'])
+        );
     }
 
     /**
@@ -96,7 +99,21 @@ class OfficeController extends Controller
      */
     public function update(UpdateOfficeRequest $request, Office $office)
     {
-        //
+        $attributes = $request->validated();
+
+        DB::transaction(function () use($attributes, $office) {
+            $office->update(
+                Arr::except($attributes, ['tags'])
+            );
+
+            if (isset($attributes['tags'])) {
+                $office->tags()->sync($attributes['tags']);
+            }
+        });
+
+        return OfficeResource::make(
+            $office->load(['images', 'tags', 'user'])
+        );
     }
 
     /**

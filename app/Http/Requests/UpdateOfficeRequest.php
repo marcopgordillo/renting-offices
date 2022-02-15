@@ -2,7 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Office;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class UpdateOfficeRequest extends FormRequest
 {
@@ -13,7 +16,7 @@ class UpdateOfficeRequest extends FormRequest
      */
     public function authorize()
     {
-        return false;
+        return Auth::user()->can('update', $this->office);
     }
 
     /**
@@ -24,7 +27,16 @@ class UpdateOfficeRequest extends FormRequest
     public function rules()
     {
         return [
-            //
+            'title'         => ['filled', 'string'],
+            'description'   => ['filled', 'string'],
+            'lat'           => ['filled', 'numeric'],
+            'lng'           => ['filled', 'numeric'],
+            'address_line1' => ['filled', 'string'],
+            'hidden'        => ['boolean'],
+            'price_per_day' => ['filled', 'integer', 'min:100'],
+            'monthly_discount'  => ['integer', 'min:0'],
+            'tags'          => ['array'],
+            'tags.*'        => ['integer', Rule::exists('tags', 'id')],
         ];
     }
 }
