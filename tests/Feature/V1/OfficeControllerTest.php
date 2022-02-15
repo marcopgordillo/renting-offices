@@ -380,4 +380,31 @@ class OfficeControllerTest extends TestCase
 
         $response->assertForbidden();
     }
+
+    /**
+     * @test
+     */
+    public function it_marks_the_office_pending_if_dirty()
+    {
+        $user = User::factory()->createQuietly();
+        $office = Office::factory()->for($user)->create();
+
+        $this->assertDatabaseHas('offices', [
+            'id'                => $office->id,
+            'approval_status'   => ApprovalStatus::APPROVED->value,
+        ]);
+
+        $this->actingAs($user);
+
+        $response = $this->putJson(route('offices.update', $office), [
+            'lat'             => 40.74051727562910,
+        ]);
+
+        $response->assertOk();
+
+        $this->assertDatabaseHas('offices', [
+            'id'                => $office->id,
+            'approval_status'   => ApprovalStatus::PENDING->value,
+        ]);
+    }
 }
