@@ -331,7 +331,7 @@ class OfficeControllerTest extends TestCase
             'Authorization'     => "Bearer {$token->plainTextToken}",
         ]);
 
-        $response->assertStatus(Response::HTTP_FORBIDDEN);
+        $response->assertForbidden();
     }
 
     /**
@@ -341,19 +341,24 @@ class OfficeControllerTest extends TestCase
     {
         $TITLE_UPDATED = 'Title updated!';
         $user = User::factory()->createQuietly();
-        $tags = Tag::factory(2)->create();
+        $tags = Tag::factory(3)->create();
         $office = Office::factory()->for($user)->create();
         $office->tags()->attach($tags);
+
+        $anotherTag = Tag::factory()->create();
 
         $this->actingAs($user);
 
         $response = $this->putJson(route('offices.update', $office), [
-            'title'             => $TITLE_UPDATED,
+            'title' => $TITLE_UPDATED,
+            'tags'  => [$tags[0]->id, $anotherTag->id],
         ]);
 
         $response->assertOk()
                 ->assertJsonPath('data.title', $TITLE_UPDATED)
-                ->assertJsonCount(2, 'data.tags');
+                ->assertJsonCount(2, 'data.tags')
+                ->assertJsonPath('data.tags.0.id', $tags[0]->id)
+                ->assertJsonPath('data.tags.1.id', $anotherTag->id);
 
     }
 
