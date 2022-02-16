@@ -275,7 +275,7 @@ class OfficeControllerTest extends TestCase
     {
         Notification::fake();
 
-        $admin = User::find(1);
+        $admin = User::Admin()->get();
 
         $user = User::factory()->createQuietly();
         $tags = Tag::factory(2)->create();
