@@ -424,4 +424,58 @@ class OfficeControllerTest extends TestCase
 
         Notification::assertSentTo($admin, OfficePendingApproval::class);
     }
+
+    /** @test */
+    public function it_can_delete_offices()
+    {
+        $user = User::factory()->create();
+        $office = Office::factory()->for($user)->create();
+
+        // $this->actingAs($user);
+        $token = $user->createToken('test', ['offices.delete']);
+
+        $response = $this->deleteJson(route('offices.destroy', $office), [], [
+            'Authorization'     => "Bearer {$token->plainTextToken}",
+        ]);
+
+        $response->assertNoContent();
+
+        $this->assertSoftDeleted($office);
+    }
+
+    /** @test */
+    public function it_cannot_delete_offices_without_token_ablities()
+    {
+        $user = User::factory()->create();
+        $office = Office::factory()->for($user)->create();
+        $token = $user->createToken('test', []);
+
+        $response = $this->deleteJson(route('offices.destroy', $office), [], [
+            'Authorization'     => "Bearer {$token->plainTextToken}",
+        ]);
+
+        $response->assertForbidden();
+    }
+
+    /** @test */
+    public function it_cannot_delete_an_office_that_has_reservations()
+    {
+        $user = User::factory()->create();
+        $office = Office::factory()
+                        ->for($user)
+                        ->has(Reservation::factory(2))
+                        ->create();
+
+        $this->actingAs($user);
+
+        $response = $this->deleteJson(route('offices.destroy', $office));
+
+        $response->assertUnprocessable();
+
+        $this->assertDatabaseHas('offices', [
+            'id'            => $office->id,
+            'deleted_at'    => null,
+        ]);
+
+    }
 }

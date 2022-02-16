@@ -13,10 +13,12 @@ use Illuminate\Http\Request;
 use App\Enums\ReservationStatus;
 use App\Models\User;
 use App\Notifications\OfficePendingApproval;
+use Illuminate\Http\Response;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Validation\ValidationException;
 
 class OfficeController extends Controller
 {
@@ -136,6 +138,16 @@ class OfficeController extends Controller
      */
     public function destroy(Office $office)
     {
-        //
+        $this->authorize('delete', $office);
+
+        if ($office->reservations()->where('status', ReservationStatus::ACTIVE)->exists()) {
+            throw ValidationException::withMessages([
+                'office' => 'Cannot delete this office with active reservations.'
+            ]);
+        }
+
+        $office->delete();
+
+        return response([], Response::HTTP_NO_CONTENT);
     }
 }
