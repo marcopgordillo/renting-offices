@@ -17,7 +17,6 @@ use App\Notifications\OfficePendingApproval;
 use Database\Seeders\OfficeSeeder;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Testing\Fakes\NotificationFake;
 
 class OfficeControllerTest extends TestCase
 {
@@ -32,9 +31,7 @@ class OfficeControllerTest extends TestCase
         // $this->seed(OfficeSeeder::class);
     }
 
-    /**
-     * @test
-     */
+    /** @test */
     public function it_get_offices()
     {
         // $response = $this->getJson('/api/v1/offices');
@@ -48,9 +45,7 @@ class OfficeControllerTest extends TestCase
                 ->assertJsonPath('data.0.id', 3);
     }
 
-    /**
-     * @test
-     */
+    /** @test */
     public function it_get_offices_paginated()
     {
         $response = $this->getJson(route('offices.index'));
@@ -66,9 +61,7 @@ class OfficeControllerTest extends TestCase
                     );
     }
 
-    /**
-     * @test
-     */
+    /** @test */
     public function it_get_offices_with_approved_status_and_no_hidden()
     {
 
@@ -97,9 +90,7 @@ class OfficeControllerTest extends TestCase
                     );
     }
 
-    /**
-     * @test
-     */
+    /** @test */
     public function it_filters_by_user_id()
     {
         $user = User::factory()->create();
@@ -122,9 +113,7 @@ class OfficeControllerTest extends TestCase
                     );
     }
 
-    /**
-     * @test
-     */
+    /** @test */
     public function it_filters_by_visitor_id()
     {
         $visitor = User::factory()->create();
@@ -154,9 +143,7 @@ class OfficeControllerTest extends TestCase
                     );
     }
 
-    /**
-     * @test
-     */
+    /** @test */
     public function it_includes_images_tags_user_and_reservations()
     {
         $user = User::factory()->create();
@@ -205,9 +192,7 @@ class OfficeControllerTest extends TestCase
                     );
     }
 
-    /**
-     * @test
-     */
+    /** @test */
     public function it_returns_the_number_of_active_reservations()
     {
         Office::factory()
@@ -236,9 +221,7 @@ class OfficeControllerTest extends TestCase
                     );
     }
 
-    /**
-     * @test
-     */
+    /** @test */
     public function it_orders_by_distance_when_coordinates_are_provided()
     {
         // $response = $this->getJson("/api/v1/offices?lat=38.720661384644046&lng=-9.16044783453807");
@@ -250,9 +233,7 @@ class OfficeControllerTest extends TestCase
         $response->assertOk();
     }
 
-    /**
-     * @test
-     */
+    /** @test */
     public function it_shows_the_office()
     {
         $user = User::factory()->create();
@@ -289,9 +270,7 @@ class OfficeControllerTest extends TestCase
                     );
     }
 
-    /**
-     * @test
-     */
+    /** @test */
     public function it_should_create_an_office()
     {
         Notification::fake();
@@ -327,9 +306,7 @@ class OfficeControllerTest extends TestCase
         Notification::assertSentTo($admin, OfficePendingApproval::class);
     }
 
-    /**
-     * @test
-     */
+    /** @test */
     public function it_doesnt_allow_create_office_if_scope_is_not_provided()
     {
         $user = User::factory()->createQuietly();
@@ -343,9 +320,7 @@ class OfficeControllerTest extends TestCase
         $response->assertForbidden();
     }
 
-    /**
-     * @test
-     */
+    /** @test */
     public function it_updates_an_office()
     {
         $TITLE_UPDATED = 'Title updated!';
@@ -371,9 +346,7 @@ class OfficeControllerTest extends TestCase
 
     }
 
-    /**
-     * @test
-     */
+    /** @test */
     public function it_doesnt_update_an_office_that_doesnt_belong_to_user()
     {
         $TITLE_UPDATED = 'Title updated!';
@@ -390,9 +363,7 @@ class OfficeControllerTest extends TestCase
         $response->assertForbidden();
     }
 
-    /**
-     * @test
-     */
+    /** @test */
     public function it_marks_the_office_pending_if_dirty()
     {
         $user = User::factory()->createQuietly();
@@ -472,10 +443,11 @@ class OfficeControllerTest extends TestCase
 
         $response->assertUnprocessable();
 
-        $this->assertDatabaseHas('offices', [
-            'id'            => $office->id,
-            'deleted_at'    => null,
-        ]);
+        $this->assertNotSoftDeleted($office);
 
+        // $this->assertDatabaseHas('offices', [
+        //     'id'            => $office->id,
+        //     'deleted_at'    => null,
+        // ]);
     }
 }
