@@ -13,8 +13,11 @@ use App\Models\Image;
 use App\Models\Reservation;
 use App\Models\Tag;
 use App\Models\User;
+use App\Notifications\OfficePendingApproval;
 use Database\Seeders\OfficeSeeder;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Testing\Fakes\NotificationFake;
 
 class OfficeControllerTest extends TestCase
 {
@@ -291,6 +294,10 @@ class OfficeControllerTest extends TestCase
      */
     public function it_should_create_an_office()
     {
+        Notification::fake();
+
+        $admin = User::find(1);
+
         $user = User::factory()->createQuietly();
         $tags = Tag::factory(2)->create();
 
@@ -316,6 +323,8 @@ class OfficeControllerTest extends TestCase
         $this->assertDatabaseHas('offices', [
             'id'    => $response->json('data')['id'],
         ]);
+
+        Notification::assertSentTo($admin, OfficePendingApproval::class);
     }
 
     /**
@@ -387,6 +396,11 @@ class OfficeControllerTest extends TestCase
     public function it_marks_the_office_pending_if_dirty()
     {
         $user = User::factory()->createQuietly();
+        $admin = User::find(1);
+
+        Notification::fake();
+
+
         $office = Office::factory()->for($user)->create();
 
         $this->assertDatabaseHas('offices', [
@@ -406,5 +420,8 @@ class OfficeControllerTest extends TestCase
             'id'                => $office->id,
             'approval_status'   => ApprovalStatus::PENDING->value,
         ]);
+
+
+        Notification::assertSentTo($admin, OfficePendingApproval::class);
     }
 }

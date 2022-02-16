@@ -74,8 +74,8 @@ services:
             retries: 3
             timeout: 5s
     mailhog:
-        profiles:
-            - donotstart
+        # profiles:
+        #     - donotstart
         image: 'mailhog/mailhog:latest'
         ports:
             - '${FORWARD_MAILHOG_PORT:-1025}:1025'

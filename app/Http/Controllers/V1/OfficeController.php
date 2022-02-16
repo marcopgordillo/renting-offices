@@ -12,9 +12,11 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use App\Enums\ReservationStatus;
 use App\Models\User;
+use App\Notifications\OfficePendingApproval;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 
 class OfficeController extends Controller
 {
@@ -69,6 +71,8 @@ class OfficeController extends Controller
             return $office;
         });
 
+        Notification::send(User::find(1), new OfficePendingApproval($office));
+
         return OfficeResource::make(
             $office->load(['images', 'tags', 'user'])
         );
@@ -103,7 +107,7 @@ class OfficeController extends Controller
 
         $office->fill(Arr::except($attributes, ['tags']));
 
-        if ($office->isDirty(['lat', 'lng', 'price_per_day'])) {
+        if ($requiresReview = $office->isDirty(['lat', 'lng', 'price_per_day'])) {
             $office->fill(['approval_status' => ApprovalStatus::PENDING]);
         }
 
@@ -114,6 +118,10 @@ class OfficeController extends Controller
                 $office->tags()->sync($attributes['tags']);
             }
         });
+
+        if ($requiresReview) {
+            Notification::send(User::find(1), new OfficePendingApproval($office));
+        }
 
         return OfficeResource::make(
             $office->load(['images', 'tags', 'user'])
