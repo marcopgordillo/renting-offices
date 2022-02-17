@@ -16,7 +16,8 @@ class StoreImageRequest extends FormRequest
      */
     public function authorize()
     {
-        return Auth::user()->can('create', [Image::class, $this->office]);
+        // return Auth::user()->can('create', [Image::class, $this->office]);
+        return Auth::user()->can('update', [Office::class, $this->office]);
     }
 
     /**
