@@ -8,12 +8,15 @@ use App\Http\Requests\UpdateImageRequest;
 use App\Http\Resources\V1\ImageResource;
 use App\Models\Image;
 use App\Models\Office;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 
 class OfficeImageController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth:sanctum', 'verified'])->only(['store']);
+        $this->middleware(['auth:sanctum', 'verified'])->only(['store', 'destroy']);
     }
 
     /**
@@ -71,8 +74,23 @@ class OfficeImageController extends Controller
      * @param  \App\Models\Image  $image
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Image $image)
+    public function destroy(Office $office, Image $image)
     {
-        //
+        $this->authorize('delete', $office);
+
+        throw_if(
+            $office->images()->count() === 1,
+            ValidationException::withMessages(['image' => 'Cannot delete the only image.'])
+        );
+
+        throw_if(
+            $office->featuredImage()->is($image),
+            ValidationException::withMessages(['image' => 'Cannot delete the featured image.'])
+        );
+
+        Storage::disk('public')->delete($image->path);
+        $image->delete();
+
+        return response('', Response::HTTP_NO_CONTENT);
     }
 }
