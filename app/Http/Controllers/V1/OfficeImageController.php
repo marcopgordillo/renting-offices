@@ -76,7 +76,7 @@ class OfficeImageController extends Controller
      */
     public function destroy(Office $office, Image $image)
     {
-        $this->authorize('delete', $office);
+        $this->authorize('delete', [$image, $office]);
 
         throw_if(
             $office->images()->count() === 1,

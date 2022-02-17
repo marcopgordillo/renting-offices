@@ -105,6 +105,24 @@ class OfficeImageControllerTest extends TestCase
     }
 
     /** @test */
+    public function it_doesnt_delete_an_image_if_owns_other_office()
+    {
+        $user = User::factory()->create();
+        $office = Office::factory()->for($user)->create();
+
+        $image = Image::factory()->for(Office::factory(), 'imageable')->create();
+
+        $this->actingAs($user);
+
+        $response = $this->deleteJson(route('offices.images.destroy', [$office, $image]));
+
+        $response->assertForbidden();
+
+        $this->assertModelExists($image);
+
+    }
+
+    /** @test */
     public function it_deletes_an_image()
     {
         Storage::disk('public')->put('/office_image.jpg', 'empty');
