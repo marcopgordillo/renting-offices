@@ -35,15 +35,10 @@ class OfficeController extends Controller
     public function index(Request $request)
     {
         $offices = Office::query()
-                ->public()
-                ->when($request->user_id, fn (Builder $builder) => $builder->whereUserId($request->user_id))
-                ->when($request->visitor_id,
-                    fn (Builder $builder) =>
-                        $builder->whereRelation('reservations', 'user_id', '=', $request->visitor_id))
-                ->when($request->lat && $request->lng,
-                    fn (Builder $builder) => $builder->nearestTo($request->lat, $request->lng),
-                    fn (Builder $builder) => $builder->orderBy('id', 'DESC')
-                )
+                ->public($request)
+                ->ownsToUserId($request)
+                ->visitor($request)
+                ->nearestTo($request)
                 ->with(['reservations', 'user', 'images', 'tags'])
                 ->withCount(['reservations' =>
                     fn (Builder $builder) => $builder->where('status', ReservationStatus::ACTIVE)])

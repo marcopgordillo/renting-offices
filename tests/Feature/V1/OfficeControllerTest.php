@@ -91,6 +91,36 @@ class OfficeControllerTest extends TestCase
     }
 
     /** @test */
+    public function it_list_offices_including_hidden_and_unapproved_if_filter_is_current_user()
+    {
+        $user = User::factory()->create();
+        Office::factory(3)
+                    ->for($user)
+                    ->create();
+        Office::factory()
+                    ->for($user)
+                    ->hidden()
+                    ->create();
+        Office::factory()
+                    ->pending()
+                    ->create();
+        Office::factory()
+                    ->for($user)
+                    ->hidden()
+                    ->pending()
+                    ->create();
+
+        $this->actingAs($user);
+
+        $response = $this->getJson(route('offices.index', [
+            'user_id'   => $user->id
+        ]));
+
+        $response->assertOk()
+                ->assertJsonCount(5, 'data');
+    }
+
+    /** @test */
     public function it_filters_by_user_id()
     {
         $user = User::factory()->create();
@@ -121,7 +151,7 @@ class OfficeControllerTest extends TestCase
         Reservation::factory()->create();
         $reservation = Reservation::factory()->for($office)->for($visitor)->create();
 
-        $response = $this->getJson("/api/v1/offices?visitor_id={$visitor->id}");
+        // $response = $this->getJson("/api/v1/offices?visitor_id={$visitor->id}");
         $response = $this->getJson(route('offices.index', [
             'visitor_id' => $visitor->id
         ]));

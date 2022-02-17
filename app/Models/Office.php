@@ -11,6 +11,7 @@ use App\Enums\ApprovalStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Http\Request;
 
 class Office extends Model
 {
@@ -29,20 +30,49 @@ class Office extends Model
         'hidden'            => 'boolean',
     ];
 
-    public function scopePublic(Builder $query)
+    /**
+     *  If the owner can see all his own offices
+     */
+    public function scopePublic(Builder $query, Request $request)
     {
-        return $query->where('hidden', false)
-                    ->where('approval_status', ApprovalStatus::APPROVED);
+        return $query
+                ->when($request->user_id && auth()->user() && $request->user_id == auth()->id(),
+                    fn (Builder $builder) => $builder,
+                    fn (Builder $builder) => $builder->where('approval_status', ApprovalStatus::APPROVED)
+                                                    ->where('hidden', false)
+                );
     }
 
-    public function scopeNearestTo(Builder $builder, $lat, $lng)
+    /**
+     * The request has a user_id param, returns all offices from from this user
+     */
+    public function scopeOwnsToUserId(Builder $query, Request $request)
+    {
+        return $query
+                ->when($request->user_id, fn (Builder $builder) => $builder->whereUserId($request->user_id));
+    }
+
+    /**
+     * Query the offices which has a reservation with a owner `visitor_id`
+     */
+    public function scopeVisitor(Builder $query, Request $request)
+    {
+        return $query
+                ->when($request->visitor_id,
+                    fn (Builder $builder) =>
+                        $builder->whereRelation('reservations', 'user_id', '=', $request->visitor_id));
+    }
+
+    /**
+     * If the request has lat and lng params, returns the offices ordered by nearest by distance
+     */
+    public function scopeNearestTo(Builder $builder, Request $request)
     {
         return $builder
-            ->select()
-            ->orderByRaw(
-                "SQRT(POW(69.1 * (lat - ?), 2) + POW(69.1 * (? - lng) * COS(lat / 57.3), 2))",
-                [$lat, $lng]
-            );
+                ->when($request->lat && $request->lng,
+                    fn (Builder $builder) => $this->selectNearestOffices($builder, $request->lat, $request->lng),
+                    fn (Builder $builder) => $builder->orderBy('id', 'DESC')
+                );
     }
 
     public function user(): BelongsTo
@@ -63,5 +93,15 @@ class Office extends Model
     public function images(): MorphMany
     {
         return $this->morphMany(Image::class, 'imageable');
+    }
+
+    private function selectNearestOffices(Builder $builder, $lat, $lng)
+    {
+        return $builder
+                    ->select()
+                    ->orderByRaw(
+                        "SQRT(POW(69.1 * (lat - ?), 2) + POW(69.1 * (? - lng) * COS(lat / 57.3), 2))",
+                        [$lat, $lng]
+                    );
     }
 }
