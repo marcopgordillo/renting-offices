@@ -479,4 +479,46 @@ class OfficeControllerTest extends TestCase
         //     'deleted_at'    => null,
         // ]);
     }
+
+    /** @test */
+    public function it_updates_the_featured_image_of_an_office()
+    {
+        $user = User::factory()->createQuietly();
+        $office = Office::factory()->for($user)->create();
+
+        $image = $office->images()->create([
+            'path'  => 'image.jpg',
+        ]);
+
+        $this->actingAs($user);
+
+        $response = $this->putJson(route('offices.update', $office), [
+            'featured_image_id' => $image->id,
+        ]);
+
+        $response->assertOk()
+                ->assertJsonPath('data.featured_image_id', $image->id);
+
+    }
+
+    /** @test */
+    public function it_doesnt_update_the_featured_image_that_belongs_to_another_office()
+    {
+        $user = User::factory()->createQuietly();
+        $office = Office::factory()->for($user)->create();
+        $office2 = Office::factory()->for($user)->create();
+
+        $image = $office2->images()->create([
+            'path'  => 'image.jpg',
+        ]);
+
+        $this->actingAs($user);
+
+        $response = $this->putJson(route('offices.update', $office), [
+            'featured_image_id' => $image->id,
+        ]);
+
+        $response->assertUnprocessable()
+                ->assertInvalid('featured_image_id');
+    }
 }

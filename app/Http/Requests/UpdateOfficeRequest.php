@@ -27,16 +27,22 @@ class UpdateOfficeRequest extends FormRequest
     public function rules()
     {
         return [
-            'title'         => ['filled', 'string'],
-            'description'   => ['filled', 'string'],
-            'lat'           => ['filled', 'numeric'],
-            'lng'           => ['filled', 'numeric'],
-            'address_line1' => ['filled', 'string'],
-            'hidden'        => ['boolean'],
-            'price_per_day' => ['filled', 'integer', 'min:100'],
+            'title'             => ['filled', 'string'],
+            'description'       => ['filled', 'string'],
+            'lat'               => ['filled', 'numeric'],
+            'lng'               => ['filled', 'numeric'],
+            'address_line1'     => ['filled', 'string'],
+            'price_per_day'     => ['filled', 'integer', 'min:100'],
+            'featured_image_id' => [
+                'integer',
+                Rule::exists('images', 'id')
+                    ->where('imageable_type', 'office')
+                    ->where('imageable_id', $this->office->id),
+                ],
+            'hidden'            => ['boolean'],
             'monthly_discount'  => ['integer', 'min:0'],
-            'tags'          => ['array'],
-            'tags.*'        => ['integer', Rule::exists('tags', 'id')],
+            'tags'              => ['array'],
+            'tags.*'            => ['integer', Rule::exists('tags', 'id')],
         ];
     }
 }

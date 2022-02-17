@@ -18,7 +18,7 @@ class Office extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'user_id', 'title', 'description', 'lat', 'lng', 'address_line1', 'address_line2', 'approval_status', 'hidden', 'price_per_day', 'monthly_discount',
+        'user_id', 'title', 'description', 'lat', 'lng', 'address_line1', 'address_line2', 'approval_status', 'hidden', 'price_per_day', 'monthly_discount', 'featured_image_id',
     ];
 
     protected $casts = [
@@ -93,6 +93,11 @@ class Office extends Model
     public function images(): MorphMany
     {
         return $this->morphMany(Image::class, 'imageable');
+    }
+
+    public function featuredImage(): BelongsTo
+    {
+        return $this->belongsTo(Image::class, 'featured_image_id');
     }
 
     private function selectNearestOffices(Builder $builder, $lat, $lng)
