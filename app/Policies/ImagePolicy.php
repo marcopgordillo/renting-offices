@@ -6,6 +6,7 @@ use App\Models\Image;
 use App\Models\Office;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
+use Illuminate\Database\Eloquent\Model;
 
 class ImagePolicy
 {
@@ -64,12 +65,12 @@ class ImagePolicy
      * @param  \App\Models\Image  $image
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function delete(User $user, Image $image, Office $office)
+    public function delete(User $user, Image $image, Model $model)
     {
-        return $user->id === $office->user->id
+        return $user->id === $model->user->id
                 && $image->imageable_type === 'office'
-                && $image->imageable_id === $office->id
-                && $user->tokenCan('offices.delete');
+                && $image->imageable_id === $model->id
+                && $user->tokenCan('images.delete');
     }
 
     /**
