@@ -20,8 +20,7 @@ use Illuminate\Support\Facades\Notification;
 
 class OfficeControllerTest extends TestCase
 {
-    use RefreshDatabase;
-    use WithFaker;
+    use RefreshDatabase, WithFaker;
 
     // protected $seeder = OfficeSeeder::class;
 

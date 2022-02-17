@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\V1\TagController;
 use App\Http\Controllers\V1\OfficeController;
+use App\Http\Controllers\V1\OfficeImageController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -25,5 +26,8 @@ Route::prefix('v1')->group(function() {
     Route::get('/tags', TagController::class)->name('tags.index');
 
     // Offices...
-    Route::apiResource('/offices', OfficeController::class);
+    Route::apiResource('offices', OfficeController::class);
+
+    // OfficeImages
+    Route::apiResource('offices.images', OfficeImageController::class)->only(['store']);
 });

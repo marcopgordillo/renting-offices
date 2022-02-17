@@ -18,7 +18,7 @@ class StoreOfficeRequest extends FormRequest
      */
     public function authorize()
     {
-        return Auth::user()->can('create', Office::class);
+        return Auth::user() && Auth::user()->can('create', Office::class);
     }
 
     /**

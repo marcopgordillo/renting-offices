@@ -16,7 +16,7 @@ class UpdateOfficeRequest extends FormRequest
      */
     public function authorize()
     {
-        return Auth::user()->can('update', $this->office);
+        return Auth::user() && Auth::user()->can('update', [$this->office]);
     }
 
     /**
