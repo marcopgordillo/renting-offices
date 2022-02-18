@@ -508,7 +508,7 @@ class OfficeControllerTest extends TestCase
         ]);
 
         $response->assertOk()
-                ->assertJsonPath('data.featured_image_id', $image->id);
+                ->assertJsonPath('data.featured_image.id', $image->id);
 
     }
 

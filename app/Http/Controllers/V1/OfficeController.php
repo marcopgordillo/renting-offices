@@ -122,7 +122,7 @@ class OfficeController extends Controller
         }
 
         return OfficeResource::make(
-            $office->load(['images', 'tags', 'user'])
+            $office->load(['images', 'tags', 'user', 'featuredImage'])
         );
     }
 
