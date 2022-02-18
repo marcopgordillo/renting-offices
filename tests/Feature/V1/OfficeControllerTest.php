@@ -17,6 +17,7 @@ use App\Notifications\OfficePendingApproval;
 use Database\Seeders\OfficeSeeder;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 
 class OfficeControllerTest extends TestCase
 {
@@ -428,8 +429,14 @@ class OfficeControllerTest extends TestCase
     /** @test */
     public function it_can_delete_offices()
     {
+        Storage::disk('public')->put('/office_image.jpg', 'empty');
+
         $user = User::factory()->create();
         $office = Office::factory()->for($user)->create();
+
+        $image = $office->images()->create([
+            'path'  => 'office_image.jpg'
+        ]);
 
         // $this->actingAs($user);
         $token = $user->createToken('test', ['offices.delete']);
@@ -441,6 +448,10 @@ class OfficeControllerTest extends TestCase
         $response->assertNoContent();
 
         $this->assertSoftDeleted($office);
+
+        $this->assertModelMissing($image);
+
+        Storage::disk('public')->assertMissing('office_image.jpg');
     }
 
     /** @test */
