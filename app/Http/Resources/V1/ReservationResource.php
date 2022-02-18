@@ -15,8 +15,14 @@ class ReservationResource extends JsonResource
      */
     public function toArray($request)
     {
-        return Arr::except(parent::toArray($request), [
-            'user_id', 'office_id', 'created_at', 'updated_at',
-        ]);
+        return [
+            'user'          => UserResource::make($this->whenLoaded('user')),
+            'office'        => OfficeResource::make($this->whenLoaded('office')),
+            $this->merge(
+                Arr::except(parent::toArray($request), [
+                    'user_id', 'office_id', 'created_at', 'updated_at',
+                ])
+            )
+        ];
     }
 }

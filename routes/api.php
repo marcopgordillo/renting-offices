@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\V1\HostReservationController;
 use App\Http\Controllers\V1\TagController;
 use App\Http\Controllers\V1\OfficeController;
 use App\Http\Controllers\V1\OfficeImageController;
+use App\Http\Controllers\V1\UserReservationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -32,4 +34,10 @@ Route::prefix('v1')->group(function() {
     Route::post('/offices/{office}/images', [OfficeImageController::class, 'store'])->name('offices.images.store');
     Route::delete('/offices/{office}/images/{image:id}', [OfficeImageController::class, 'destroy'])->name('offices.images.destroy');
     // Route::apiResource('offices.images', OfficeImageController::class)->only(['store', 'destroy']);
+
+    // User Reservations
+    Route::get('/reservations', [UserReservationController::class, 'index'])->name('reservations.index');
+
+    // Host Reservations
+    Route::get('/host/reservations', [HostReservationController::class, 'index'])->name('host.reservations.index');
 });

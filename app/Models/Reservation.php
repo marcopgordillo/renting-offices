@@ -32,10 +32,4 @@ class Reservation extends Model
     {
         return $this->belongsTo(Office::class);
     }
-
-
-    public function images(): MorphMany
-    {
-        return $this->morphMany(Image::class, 'imageable');
-    }
 }
