@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\V1;
 
+use App\Enums\ReservationStatus;
+use App\Models\Office;
 use App\Models\Reservation;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
@@ -103,5 +105,63 @@ class UserReservationControllerTest extends TestCase
 
         $this->assertEquals([$reservation1->id, $reservation2->id],
             collect($response->json('data'))->pluck('id')->toArray());
+    }
+
+    /** @test */
+    public function it_lists_reservation_filtered_by_status()
+    {
+        $user = User::factory()->create();
+
+        $reservation = Reservation::factory()->for($user)->create();
+        Reservation::factory()->for($user)->cancelled()->create();
+
+        $this->actingAs($user);
+
+        $response = $this->getJson(route('reservations.index', [
+            'status'     => ReservationStatus::ACTIVE->value,
+        ]));
+
+        $response->assertOk()
+                ->assertJsonCount(1, 'data')
+                ->assertJson(fn (AssertableJson $json) =>
+                    $json->hasAll('data', 'meta', 'links')
+                        ->has('data', 1)
+                        ->has('data.0', fn ($json) =>
+                            $json
+                                ->where('id', $reservation->id)
+                                ->where('status', ReservationStatus::ACTIVE->value)
+                                ->etc()
+                        )
+                );
+    }
+
+    /** @test */
+    public function it_lists_reservation_filtered_by_office()
+    {
+        $user = User::factory()->create();
+
+        $office = Office::factory()->create();
+
+        $reservation = Reservation::factory()->for($user)->for($office)->create();
+        Reservation::factory()->for($user)->create();
+
+        $this->actingAs($user);
+
+        $response = $this->getJson(route('reservations.index', [
+            'office_id'     => $office->id,
+        ]));
+
+        $response->assertOk()
+                ->assertJsonCount(1, 'data')
+                ->assertJson(fn (AssertableJson $json) =>
+                    $json->hasAll('data', 'meta', 'links')
+                        ->has('data', 1)
+                        ->has('data.0', fn ($json) =>
+                            $json
+                                ->where('id', $reservation->id)
+                                ->where('office.id', $office->id)
+                                ->etc()
+                        )
+                );
     }
 }
