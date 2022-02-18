@@ -483,11 +483,6 @@ class OfficeControllerTest extends TestCase
         $response->assertUnprocessable();
 
         $this->assertNotSoftDeleted($office);
-
-        // $this->assertDatabaseHas('offices', [
-        //     'id'            => $office->id,
-        //     'deleted_at'    => null,
-        // ]);
     }
 
     /** @test */
