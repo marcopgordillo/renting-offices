@@ -29,7 +29,7 @@ class IndexReservationRequest extends FormRequest
         return [
             'status'        => [new Enum(ReservationStatus::class)],
             'from_date'     => ['date', 'required_with:to_date'],
-            'to_date'       => ['date', 'required_with:from_date'],
+            'to_date'       => ['date', 'required_with:from_date', 'after:from_date'],
             'office_id'     => ['integer'],
         ];
     }
