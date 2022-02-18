@@ -9,7 +9,6 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Storage;
-use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class OfficeImageControllerTest extends TestCase
@@ -24,7 +23,7 @@ class OfficeImageControllerTest extends TestCase
         $user = User::factory()->create();
         $office = Office::factory()->for($user)->create();
 
-        Sanctum::actingAs($user, ['offices.update']);
+        $this->actingAs($user);
 
         $response = $this->post(route('offices.images.store', $office), [
             'image'     => UploadedFile::fake()->image('image.jpg'),
@@ -45,7 +44,7 @@ class OfficeImageControllerTest extends TestCase
         $user = User::factory()->create();
         $office = Office::factory()->create();
 
-        Sanctum::actingAs($user, ['offices.update']);
+        $this->actingAs($user);
 
         $response = $this->post(route('offices.images.store', $office), [
             'image'     => UploadedFile::fake()->image('image.jpg'),
@@ -64,7 +63,7 @@ class OfficeImageControllerTest extends TestCase
             'path'  => 'image.jpg'
         ]);
 
-        Sanctum::actingAs($user, ['offices.delete']);
+        $this->actingAs($user);
 
         $response = $this->deleteJson(route('offices.images.destroy', [$office, $image]));
 
@@ -93,7 +92,7 @@ class OfficeImageControllerTest extends TestCase
             'featured_image_id'     => $image->id,
         ]);
 
-        Sanctum::actingAs($user, ['offices.delete']);
+        $this->actingAs($user);
 
         $response = $this->deleteJson(route('offices.images.destroy', [$office, $image]));
 
@@ -113,7 +112,7 @@ class OfficeImageControllerTest extends TestCase
 
         $image = Image::factory()->for(Office::factory(), 'imageable')->create();
 
-        Sanctum::actingAs($user, ['offices.delete']);
+        $this->actingAs($user);
 
         $response = $this->deleteJson(route('offices.images.destroy', [$office, $image]));
 
@@ -139,7 +138,7 @@ class OfficeImageControllerTest extends TestCase
             'path'  => 'office_image.jpg'
         ]);
 
-        Sanctum::actingAs($user, ['offices.delete']);
+        $this->actingAs($user);
 
         $response = $this->deleteJson(route('offices.images.destroy', [$office, $image]));
 

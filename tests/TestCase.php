@@ -4,6 +4,8 @@ namespace Tests;
 
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Testing\Constraints\NotSoftDeletedInDatabase;
+use Illuminate\Contracts\Auth\Authenticatable as UserContract;
+use Laravel\Sanctum\Sanctum;
 
 abstract class TestCase extends BaseTestCase
 {
@@ -39,6 +41,20 @@ abstract class TestCase extends BaseTestCase
         $this->assertThat(
             $this->getTable($table), new NotSoftDeletedInDatabase($this->getConnection($connection, $table), $data, $deletedAtColumn)
         );
+
+        return $this;
+    }
+
+    /**
+     * Set the currently logged in user for the application.
+     *
+     * @param  \Illuminate\Contracts\Auth\Authenticatable  $user
+     * @param  string|null  $guard
+     * @return $this
+     */
+    public function actingAs(UserContract $user, $abilities = ['*'])
+    {
+        Sanctum::actingAs($user, $abilities);
 
         return $this;
     }

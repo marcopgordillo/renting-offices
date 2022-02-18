@@ -15,10 +15,8 @@ use App\Models\Tag;
 use App\Models\User;
 use App\Notifications\OfficePendingApproval;
 use Database\Seeders\OfficeSeeder;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
-use Laravel\Sanctum\Sanctum;
 
 class OfficeControllerTest extends TestCase
 {
@@ -311,7 +309,7 @@ class OfficeControllerTest extends TestCase
         $user = User::factory()->createQuietly();
         $tags = Tag::factory(2)->create();
 
-        Sanctum::actingAs($user, ['offices.create']);
+        $this->actingAs($user);
 
         $response = $this->postJson(route('offices.store'), [
             'title'             => $this->faker->sentence,
@@ -362,7 +360,7 @@ class OfficeControllerTest extends TestCase
 
         $anotherTag = Tag::factory()->create();
 
-        Sanctum::actingAs($user, ['offices.update']);
+        $this->actingAs($user);
 
         $response = $this->putJson(route('offices.update', $office), [
             'title' => $TITLE_UPDATED,
@@ -410,7 +408,7 @@ class OfficeControllerTest extends TestCase
             'approval_status'   => ApprovalStatus::APPROVED->value,
         ]);
 
-        Sanctum::actingAs($user, ['offices.update']);
+        $this->actingAs($user);
 
         $response = $this->putJson(route('offices.update', $office), [
             'lat'             => 40.74051727562910,
@@ -478,7 +476,7 @@ class OfficeControllerTest extends TestCase
                         ->has(Reservation::factory(2))
                         ->create();
 
-        Sanctum::actingAs($user, ['offices.delete']);
+        $this->actingAs($user);
 
         $response = $this->deleteJson(route('offices.destroy', $office));
 
@@ -502,7 +500,7 @@ class OfficeControllerTest extends TestCase
             'path'  => 'image.jpg',
         ]);
 
-        Sanctum::actingAs($user, ['offices.update']);
+        $this->actingAs($user);
 
         $response = $this->putJson(route('offices.update', $office), [
             'featured_image_id' => $image->id,
@@ -524,7 +522,7 @@ class OfficeControllerTest extends TestCase
             'path'  => 'image.jpg',
         ]);
 
-        Sanctum::actingAs($user, ['offices.update']);
+        $this->actingAs($user);
 
         $response = $this->putJson(route('offices.update', $office), [
             'featured_image_id' => $image->id,
