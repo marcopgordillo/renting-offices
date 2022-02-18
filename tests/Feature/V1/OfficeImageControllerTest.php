@@ -18,7 +18,7 @@ class OfficeImageControllerTest extends TestCase
     /** @test */
     public function it_uploads_an_image_and_stores_under_office()
     {
-        Storage::fake('public');
+        Storage::fake();
 
         $user = User::factory()->create();
         $office = Office::factory()->for($user)->create();
@@ -31,7 +31,7 @@ class OfficeImageControllerTest extends TestCase
 
         $response->assertCreated();
 
-        Storage::disk('public')->assertExists(
+        Storage::assertExists(
             $response->json('data.path')
         );
     }
@@ -39,7 +39,7 @@ class OfficeImageControllerTest extends TestCase
     /** @test */
     public function it_cannot_upload_an_image_if_user_doesnt_owns_the_office()
     {
-        Storage::fake('public');
+        Storage::fake();
 
         $user = User::factory()->create();
         $office = Office::factory()->create();
@@ -125,7 +125,7 @@ class OfficeImageControllerTest extends TestCase
     /** @test */
     public function it_deletes_an_image()
     {
-        Storage::disk('public')->put('/office_image.jpg', 'empty');
+        Storage::put('/office_image.jpg', 'empty');
 
         $user = User::factory()->create();
         $office = Office::factory()->for($user)->create();
@@ -144,7 +144,7 @@ class OfficeImageControllerTest extends TestCase
 
         $response->assertNoContent();
 
-        Storage::disk('public')->assertMissing(
+        Storage::assertMissing(
             $image->path
         );
 
