@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\IndexReservationRequest;
 use App\Http\Requests\StoreReservationRequest;
 use App\Http\Requests\UpdateReservationRequest;
 use App\Http\Resources\V1\ReservationResource;
@@ -20,10 +21,8 @@ class UserReservationController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request)
+    public function index(IndexReservationRequest $request)
     {
-        $this->authorize('viewAny', Reservation::class);
-
         $reservations = Reservation::query()
                                     ->where('user_id', auth()->id())
                                     ->when($request->office_id, fn ($query) =>
