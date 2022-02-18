@@ -116,7 +116,7 @@ class OfficeImageControllerTest extends TestCase
 
         $response = $this->deleteJson(route('offices.images.destroy', [$office, $image]));
 
-        $response->assertForbidden();
+        $response->assertUnprocessable();
 
         $this->assertModelExists($image);
 
