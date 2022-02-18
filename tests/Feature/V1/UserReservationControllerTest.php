@@ -6,6 +6,7 @@ use App\Models\Reservation;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class UserReservationControllerTest extends TestCase
@@ -29,7 +30,7 @@ class UserReservationControllerTest extends TestCase
         Reservation::factory(2)->for($user)->create();
         Reservation::factory(3)->create();
 
-        $this->actingAs($user);
+        Sanctum::actingAs($user, ['reservations.show']);
 
         $response = $this->getJson(route('reservations.index'));
 
