@@ -29,5 +29,7 @@ Route::prefix('v1')->group(function() {
     Route::apiResource('offices', OfficeController::class);
 
     // OfficeImages
-    Route::apiResource('offices.images', OfficeImageController::class)->only(['store', 'destroy']);
+    Route::post('/offices/{office}/images', [OfficeImageController::class, 'store'])->name('offices.images.store');
+    Route::delete('/offices/{office}/images/{image:id}', [OfficeImageController::class, 'destroy'])->name('offices.images.destroy');
+    // Route::apiResource('offices.images', OfficeImageController::class)->only(['store', 'destroy']);
 });

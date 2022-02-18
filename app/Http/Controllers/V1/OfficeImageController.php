@@ -79,11 +79,6 @@ class OfficeImageController extends Controller
         $this->authorize('delete', $office);
 
         throw_if(
-            $image->imageable_type != 'office' || $image->imageable_id != $office->id,
-            ValidationException::withMessages(['image' => 'Cannot delete this image.'])
-        );
-
-        throw_if(
             $office->images()->count() === 1,
             ValidationException::withMessages(['image' => 'Cannot delete the only image.'])
         );
