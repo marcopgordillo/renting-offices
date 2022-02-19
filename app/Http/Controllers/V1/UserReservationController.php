@@ -7,8 +7,12 @@ use App\Http\Requests\IndexReservationRequest;
 use App\Http\Requests\StoreReservationRequest;
 use App\Http\Requests\UpdateReservationRequest;
 use App\Http\Resources\V1\ReservationResource;
+use App\Models\Office;
 use App\Models\Reservation;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
+use PhpParser\Node\Stmt\TryCatch;
 
 class UserReservationController extends Controller
 {
@@ -48,7 +52,19 @@ class UserReservationController extends Controller
      */
     public function store(StoreReservationRequest $request)
     {
-        //
+        try {
+            $office = Office::findOrFail($request->office_id);
+        } catch (ModelNotFoundException $e) {
+            throw ValidationException::withMessages([
+                'office_id' => 'Invalid office_id'
+            ]);
+        }
+
+        if ($office->user_id === auth()->id()) {
+            throw ValidationException::withMessages([
+                'office_id' => 'You cannot make a reservation in your own office'
+            ]);
+        }
     }
 
     /**

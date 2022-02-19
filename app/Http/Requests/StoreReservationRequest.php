@@ -26,7 +26,9 @@ class StoreReservationRequest extends FormRequest
     public function rules()
     {
         return [
-            //
+            'office_id'         => ['required', 'integer'],
+            'start_date'        => ['required', 'date:Y-m-d'],
+            'end_date'          => ['required', 'date:Y-m-d'],
         ];
     }
 }
