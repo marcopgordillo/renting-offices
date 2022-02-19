@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\V1;
 
+use App\Enums\ApprovalStatus;
 use App\Enums\ReservationStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\IndexReservationRequest;
@@ -63,21 +64,28 @@ class UserReservationController extends Controller
             ]);
         }
 
-        if ($office->user_id === auth()->id()) {
-            throw ValidationException::withMessages([
+        throw_if($office->user_id === auth()->id(),
+            ValidationException::withMessages([
                 'office_id' => 'You cannot make a reservation in your own office'
-            ]);
-        }
+            ])
+        );
+
+        throw_if($office->hidden || $office->approval_status === ApprovalStatus::PENDING,
+            ValidationException::withMessages([
+                'office_id'    => 'You cannot make a reservation on a hidden office'
+            ])
+        );
 
         $reservation = Cache::lock("reservations_office_{$office->id}", 10)
                             ->block(3, function() use($request, $office) {
-            if ($office->reservations()
+
+            throw_if($office->reservations()
                     ->whereStatus(ReservationStatus::ACTIVE)
-                    ->activeBetweenDates($request->start_date, $request->end_date)->exists()) {
-                throw ValidationException::withMessages([
+                    ->activeBetweenDates($request->start_date, $request->end_date)->exists(),
+                ValidationException::withMessages([
                     'start_date' => 'You cannot make a reservation during this time.'
-                ]);
-            }
+                ])
+            );
 
             $numberOfDays = Carbon::parse($request->end_date)->endOfDay()->diffInDays(
                 Carbon::parse($request->start_date)->startOfDay()

@@ -326,4 +326,35 @@ class UserReservationControllerTest extends TestCase
                 ->assertInvalid('start_date')
                 ->assertJsonValidationErrors(['start_date' => 'You cannot make a reservation during this time.']);
     }
+
+    /** @test */
+    public function it_cannot_makes_reservations_on_office_that_is_pending_or_hidden()
+    {
+        $user = User::factory()->create();
+
+        $office1 = Office::factory()->hidden()->create();
+        $office2 = Office::factory()->pending()->create();
+
+        $this->actingAs($user);
+
+        $response1 = $this->postJson(route('reservations.store'), [
+            'office_id'     => $office1->id,
+            'start_date'    => now()->addDay(),
+            'end_date'      => now()->addDays(40),
+        ]);
+
+        $response2 = $this->postJson(route('reservations.store'), [
+            'office_id'     => $office2->id,
+            'start_date'    => now()->addDay(),
+            'end_date'      => now()->addDays(40),
+        ]);
+
+        $response1->assertUnprocessable()
+                ->assertInvalid('office_id')
+                ->assertJsonValidationErrors(['office_id' => 'You cannot make a reservation on a hidden office']);
+
+        $response2->assertUnprocessable()
+                ->assertInvalid('office_id')
+                ->assertJsonValidationErrors(['office_id' => 'You cannot make a reservation on a hidden office']);
+    }
 }
