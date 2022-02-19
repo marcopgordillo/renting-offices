@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\V1;
 
+use App\Enums\ReservationStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\IndexReservationRequest;
 use App\Http\Requests\StoreReservationRequest;
@@ -63,6 +64,14 @@ class UserReservationController extends Controller
         if ($office->user_id === auth()->id()) {
             throw ValidationException::withMessages([
                 'office_id' => 'You cannot make a reservation in your own office'
+            ]);
+        }
+
+        if ($office->reservations()
+                ->whereStatus(ReservationStatus::ACTIVE)
+                ->activeBetweenDates($request->start_date, $request->end_date)->exists()) {
+            throw ValidationException::withMessages([
+                'office_id' => 'You cannot make a reservation during this time.'
             ]);
         }
     }

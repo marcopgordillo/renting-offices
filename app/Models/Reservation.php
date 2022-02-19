@@ -37,6 +37,12 @@ class Reservation extends Model
                         );
     }
 
+    public function scopeActiveBetweenDates($query, $from_date, $to_date)
+    {
+        return $query->whereStatus(ReservationStatus::ACTIVE)
+                    ->betweenDates($from_date, $to_date);
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
