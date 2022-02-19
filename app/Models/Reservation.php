@@ -23,6 +23,16 @@ class Reservation extends Model
         'end_date'      => 'immutable_date',
     ];
 
+    public function scopeBetweenDates($query, $from_date, $to_date)
+    {
+        return $query
+                    ->where(fn ($query) =>
+                        $query
+                            ->whereBetween('start_date', [$from_date, $to_date])
+                            ->orWhereBetween('end_date', [$from_date, $to_date])
+                        );
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

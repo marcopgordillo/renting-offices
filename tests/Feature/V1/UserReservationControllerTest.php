@@ -183,7 +183,6 @@ class UserReservationControllerTest extends TestCase
         ]));
 
         $response->assertOk()
-                ->dump()
                 ->assertJsonCount(1, 'data')
                 ->assertJson(fn (AssertableJson $json) =>
                     $json->hasAll('data', 'meta', 'links')
