@@ -212,8 +212,8 @@ class UserReservationControllerTest extends TestCase
 
         $response = $this->postJson(route('reservations.store'), [
             'office_id'     => $office->id,
-            'start_date'    => now()->addDays(1),
-            'end_date'      => now()->addDays(40),
+            'start_date'    => now()->addDays(1)->toDateString(),
+            'end_date'      => now()->addDays(40)->toDateString(),
         ]);
 
         $response->assertCreated()
@@ -232,8 +232,8 @@ class UserReservationControllerTest extends TestCase
 
         $response = $this->postJson(route('reservations.store'), [
             'office_id'     => 10000,
-            'start_date'    => now()->addDays(1),
-            'end_date'      => now()->addDays(40),
+            'start_date'    => now()->addDays(1)->toDateString(),
+            'end_date'      => now()->addDays(40)->toDateString(),
         ]);
 
         $response->assertUnprocessable()
@@ -252,8 +252,8 @@ class UserReservationControllerTest extends TestCase
 
         $response = $this->postJson(route('reservations.store'), [
             'office_id'     => $office->id,
-            'start_date'    => now()->addDays(1),
-            'end_date'      => now()->addDays(40),
+            'start_date'    => now()->addDays(1)->toDateString(),
+            'end_date'      => now()->addDays(40)->toDateString(),
         ]);
 
         $response->assertUnprocessable()
@@ -272,13 +272,33 @@ class UserReservationControllerTest extends TestCase
 
         $response = $this->postJson(route('reservations.store'), [
             'office_id'     => $office->id,
-            'start_date'    => now()->addDays(1),
-            'end_date'      => now()->addDays(1),
+            'start_date'    => now()->addDay()->toDateString(),
+            'end_date'      => now()->addDay()->toDateString(),
         ]);
 
         $response->assertUnprocessable()
                 ->assertInvalid('end_date')
                 ->assertJsonValidationErrors(['end_date' => 'The end date must be a date after start date.']);
+    }
+
+    /** @test */
+    public function it_cannot_makes_reservations_on_same_day()
+    {
+        $user = User::factory()->create();
+
+        $office = Office::factory()->create();
+
+        $this->actingAs($user);
+
+        $response = $this->postJson(route('reservations.store'), [
+            'office_id'     => $office->id,
+            'start_date'    => now()->toDateString(),
+            'end_date'      => now()->addDays(2)->toDateString(),
+        ]);
+
+        $response->assertUnprocessable()
+                ->assertInvalid('start_date')
+                ->assertJsonValidationErrors(['start_date' => 'The start date must be a date after today.']);
     }
 
     /** @test */
@@ -292,8 +312,8 @@ class UserReservationControllerTest extends TestCase
 
         $response = $this->postJson(route('reservations.store'), [
             'office_id'     => $office->id,
-            'start_date'    => now()->addDays(1),
-            'end_date'      => now()->addDays(2),
+            'start_date'    => now()->addDays(1)->toDateString(),
+            'end_date'      => now()->addDays(2)->toDateString(),
         ]);
 
         $response->assertCreated();
@@ -310,16 +330,16 @@ class UserReservationControllerTest extends TestCase
         $office = Office::factory()->create();
 
         Reservation::factory()->for($office)->create([
-            'start_date'    => now()->addDays(2),
-            'end_date'    => $toDate,
+            'start_date'    => now()->addDays(2)->toDateString(),
+            'end_date'    => $toDate->toDateString(),
         ]);
 
         $this->actingAs($user);
 
         $response = $this->postJson(route('reservations.store'), [
             'office_id'     => $office->id,
-            'start_date'    => $fromDate,
-            'end_date'      => $toDate,
+            'start_date'    => $fromDate->toDateString(),
+            'end_date'      => $toDate->toDateString(),
         ]);
 
         $response->assertUnprocessable()
@@ -339,14 +359,14 @@ class UserReservationControllerTest extends TestCase
 
         $response1 = $this->postJson(route('reservations.store'), [
             'office_id'     => $office1->id,
-            'start_date'    => now()->addDay(),
-            'end_date'      => now()->addDays(40),
+            'start_date'    => now()->addDay()->toDateString(),
+            'end_date'      => now()->addDays(40)->toDateString(),
         ]);
 
         $response2 = $this->postJson(route('reservations.store'), [
             'office_id'     => $office2->id,
-            'start_date'    => now()->addDay(),
-            'end_date'      => now()->addDays(40),
+            'start_date'    => now()->addDay()->toDateString(),
+            'end_date'      => now()->addDays(40)->toDateString(),
         ]);
 
         $response1->assertUnprocessable()
