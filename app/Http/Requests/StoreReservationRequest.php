@@ -27,7 +27,7 @@ class StoreReservationRequest extends FormRequest
     {
         return [
             'office_id'         => ['required', 'integer'],
-            'start_date'        => ['required', 'date:Y-m-d', 'after'.now()->addDay()->toDateString()],
+            'start_date'        => ['required', 'date:Y-m-d', 'after:tomorrow'],
             'end_date'          => ['required', 'date:Y-m-d', 'after:start_date'],
         ];
     }

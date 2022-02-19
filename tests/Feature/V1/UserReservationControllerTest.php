@@ -199,4 +199,27 @@ class UserReservationControllerTest extends TestCase
                 );
     }
 
+    /** @test */
+    public function it_makes_reservations()
+    {
+        $user = User::factory()->create();
+        $office = Office::factory()->create([
+            'price_per_day'     => 1_000,
+            'monthly_discount'  => 10,
+        ]);
+
+        $this->actingAs($user);
+
+        $response = $this->postJson(route('reservations.store'), [
+            'office_id'     => $office->id,
+            'start_date'    => now()->addDays(1),
+            'end_date'      => now()->addDays(41),
+        ]);
+
+        $response->assertCreated()
+                ->assertJsonPath('data.price', 36000)
+                ->assertJsonPath('data.user.id', $user->id)
+                ->assertJsonPath('data.office.id', $office->id)
+                ->assertJsonPath('data.status', ReservationStatus::ACTIVE->value);
+    }
 }
