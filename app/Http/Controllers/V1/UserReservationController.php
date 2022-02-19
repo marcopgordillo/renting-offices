@@ -71,23 +71,17 @@ class UserReservationController extends Controller
 
         $reservation = Cache::lock("reservations_office_{$office->id}", 10)
                             ->block(3, function() use($request, $office) {
-            $numberOfDays = Carbon::parse($request->end_date)->endOfDay()->diffInDays(
-                Carbon::parse($request->start_date)->startOfDay()
-            );
-
-            if ($numberOfDays < 2) {
-                throw ValidationException::withMessages([
-                    'office_id' => 'You cannot make a reservation for only 1 day.'
-                ]);
-            }
-
             if ($office->reservations()
                     ->whereStatus(ReservationStatus::ACTIVE)
                     ->activeBetweenDates($request->start_date, $request->end_date)->exists()) {
                 throw ValidationException::withMessages([
-                    'office_id' => 'You cannot make a reservation during this time.'
+                    'start_date' => 'You cannot make a reservation during this time.'
                 ]);
             }
+
+            $numberOfDays = Carbon::parse($request->end_date)->endOfDay()->diffInDays(
+                Carbon::parse($request->start_date)->startOfDay()
+            ) + 1;
 
             $price = $numberOfDays * $office->price_per_day;
 

@@ -213,7 +213,7 @@ class UserReservationControllerTest extends TestCase
         $response = $this->postJson(route('reservations.store'), [
             'office_id'     => $office->id,
             'start_date'    => now()->addDays(1),
-            'end_date'      => now()->addDays(41),
+            'end_date'      => now()->addDays(40),
         ]);
 
         $response->assertCreated()
@@ -221,5 +221,109 @@ class UserReservationControllerTest extends TestCase
                 ->assertJsonPath('data.user.id', $user->id)
                 ->assertJsonPath('data.office.id', $office->id)
                 ->assertJsonPath('data.status', ReservationStatus::ACTIVE->value);
+    }
+
+    /** @test */
+    public function it_cannot_makes_reservations_on_not_existing_office()
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user);
+
+        $response = $this->postJson(route('reservations.store'), [
+            'office_id'     => 10000,
+            'start_date'    => now()->addDays(1),
+            'end_date'      => now()->addDays(40),
+        ]);
+
+        $response->assertUnprocessable()
+                ->assertInvalid('office_id')
+                ->assertJsonValidationErrors(['office_id' => 'Invalid office_id']);
+    }
+
+    /** @test */
+    public function it_cannot_makes_reservations_on_office_that_belongs_to_the_user()
+    {
+        $user = User::factory()->create();
+
+        $office = Office::factory()->for($user)->create();
+
+        $this->actingAs($user);
+
+        $response = $this->postJson(route('reservations.store'), [
+            'office_id'     => $office->id,
+            'start_date'    => now()->addDays(1),
+            'end_date'      => now()->addDays(40),
+        ]);
+
+        $response->assertUnprocessable()
+                ->assertInvalid('office_id')
+                ->assertJsonValidationErrors(['office_id' => 'You cannot make a reservation in your own office']);
+    }
+
+    /** @test */
+    public function it_cannot_makes_reservations_less_than_2_days()
+    {
+        $user = User::factory()->create();
+
+        $office = Office::factory()->create();
+
+        $this->actingAs($user);
+
+        $response = $this->postJson(route('reservations.store'), [
+            'office_id'     => $office->id,
+            'start_date'    => now()->addDays(1),
+            'end_date'      => now()->addDays(1),
+        ]);
+
+        $response->assertUnprocessable()
+                ->assertInvalid('end_date')
+                ->assertJsonValidationErrors(['end_date' => 'The end date must be a date after start date.']);
+    }
+
+    /** @test */
+    public function it_makes_reservations_for_2_days()
+    {
+        $user = User::factory()->create();
+
+        $office = Office::factory()->create();
+
+        $this->actingAs($user);
+
+        $response = $this->postJson(route('reservations.store'), [
+            'office_id'     => $office->id,
+            'start_date'    => now()->addDays(1),
+            'end_date'      => now()->addDays(2),
+        ]);
+
+        $response->assertCreated();
+    }
+
+    /** @test */
+    public function it_cannot_makes_reservations_thats_conflicting()
+    {
+        $user = User::factory()->create();
+
+        $fromDate = now()->addDay();
+        $toDate = now()->addDays(15);
+
+        $office = Office::factory()->create();
+
+        Reservation::factory()->for($office)->create([
+            'start_date'    => now()->addDays(2),
+            'end_date'    => $toDate,
+        ]);
+
+        $this->actingAs($user);
+
+        $response = $this->postJson(route('reservations.store'), [
+            'office_id'     => $office->id,
+            'start_date'    => $fromDate,
+            'end_date'      => $toDate,
+        ]);
+
+        $response->assertUnprocessable()
+                ->assertInvalid('start_date')
+                ->assertJsonValidationErrors(['start_date' => 'You cannot make a reservation during this time.']);
     }
 }
