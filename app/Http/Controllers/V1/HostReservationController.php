@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\IndexReservationRequest;
 use App\Http\Requests\StoreReservationRequest;
 use App\Http\Requests\UpdateReservationRequest;
+use App\Http\Resources\V1\ReservationResource;
 use App\Models\Reservation;
 
 class HostReservationController extends Controller
@@ -14,9 +16,30 @@ class HostReservationController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(IndexReservationRequest $request)
     {
-        //
+        $reservations = Reservation::query()
+                                    ->whereRelation('office', 'user_id', '=', auth()->id())
+                                    ->when($request->office_id, fn ($query) =>
+                                        $query->where('office_id', $request->office_id)
+                                    )
+                                    ->when($request->user_id, fn ($query) =>
+                                        $query->where('user_id', $request->user_id)
+                                    )
+                                    ->when($request->status, fn ($query) =>
+                                        $query->where('status', $request->status)
+                                    )
+                                    ->when($request->from_date && $request->to_date, fn ($query) =>
+                                        $query->where(fn ($query) =>
+                                            $query
+                                                ->whereBetween('start_date', [$request->from_date, $request->to_date])
+                                                ->orWhereBetween('end_date', [$request->from_date, $request->to_date])
+                                        )
+                                    )
+                                    ->with(['office.featuredImage'])
+                                    ->paginate(20);
+
+        return ReservationResource::collection($reservations);
     }
 
     /**

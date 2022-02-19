@@ -31,6 +31,7 @@ class IndexReservationRequest extends FormRequest
             'from_date'     => ['date', 'required_with:to_date'],
             'to_date'       => ['date', 'required_with:from_date', 'after:from_date'],
             'office_id'     => ['integer'],
+            'user_id'       => ['integer'],
         ];
     }
 }

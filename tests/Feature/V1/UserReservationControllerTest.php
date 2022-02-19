@@ -164,4 +164,37 @@ class UserReservationControllerTest extends TestCase
                         )
                 );
     }
+
+    /** @test */
+    public function it_lists_reservation_owned_by_host()
+    {
+        $user = User::factory()->create();
+
+        $office = Office::factory()->for($user)->create();
+
+        $reservation = Reservation::factory()->for($user)->for($office)->create();
+        Reservation::factory()->for($user)->create();
+        Reservation::factory()->create();
+
+        $this->actingAs($user);
+
+        $response = $this->getJson(route('host.reservations.index', [
+            'office_id'     => $office->id,
+        ]));
+
+        $response->assertOk()
+                ->dump()
+                ->assertJsonCount(1, 'data')
+                ->assertJson(fn (AssertableJson $json) =>
+                    $json->hasAll('data', 'meta', 'links')
+                        ->has('data', 1)
+                        ->has('data.0', fn ($json) =>
+                            $json
+                                ->where('id', $reservation->id)
+                                ->where('office.id', $office->id)
+                                ->etc()
+                        )
+                );
+    }
+
 }
