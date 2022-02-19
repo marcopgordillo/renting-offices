@@ -47,8 +47,8 @@ services:
             retries: 3
             timeout: 5s
     redis:
-        profiles:
-            - donotstart
+        # profiles:
+        #     - donotstart
         image: 'redis:alpine'
         ports:
             - '${FORWARD_REDIS_PORT:-6379}:6379'
@@ -75,8 +75,8 @@ services:
             retries: 3
             timeout: 5s
     mailhog:
-        profiles:
-            - donotstart
+        # profiles:
+        #     - donotstart
         image: 'mailhog/mailhog:latest'
         ports:
             - '${FORWARD_MAILHOG_PORT:-1025}:1025'

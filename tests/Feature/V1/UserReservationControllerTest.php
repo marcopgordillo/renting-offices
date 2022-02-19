@@ -6,9 +6,11 @@ use App\Enums\ReservationStatus;
 use App\Models\Office;
 use App\Models\Reservation;
 use App\Models\User;
+use App\Notifications\NewUserReservation;
+use App\Notifications\NewHostReservation;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Testing\Fluent\AssertableJson;
 use Tests\TestCase;
 
@@ -221,6 +223,28 @@ class UserReservationControllerTest extends TestCase
                 ->assertJsonPath('data.user.id', $user->id)
                 ->assertJsonPath('data.office.id', $office->id)
                 ->assertJsonPath('data.status', ReservationStatus::ACTIVE->value);
+    }
+
+    /** @test */
+    public function it_send_notifications_on_new_reservations()
+    {
+        Notification::fake();
+
+        $user = User::factory()->create();
+        $office = Office::factory()->create();
+
+        $this->actingAs($user);
+
+        $response = $this->postJson(route('reservations.store'), [
+            'office_id'     => $office->id,
+            'start_date'    => now()->addDays(1)->toDateString(),
+            'end_date'      => now()->addDays(40)->toDateString(),
+        ]);
+
+        Notification::assertSentTo($user, NewUserReservation::class);
+        Notification::assertSentTo($office->user, NewHostReservation::class);
+
+        $response->assertCreated();
     }
 
     /** @test */
