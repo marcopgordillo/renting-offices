@@ -30,6 +30,10 @@ class Reservation extends Model
                         $query
                             ->whereBetween('start_date', [$from_date, $to_date])
                             ->orWhereBetween('end_date', [$from_date, $to_date])
+                            ->orWhere(fn ($query) =>
+                                $query->where('start_date', '<', $from_date)
+                                    ->where('end_date', '>', $to_date)
+                            )
                         );
     }
 

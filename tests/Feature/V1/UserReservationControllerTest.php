@@ -53,30 +53,32 @@ class UserReservationControllerTest extends TestCase
         $toDate = '2021-04-03';
 
         // Whithin the range date
-        $reservation1 = Reservation::factory()->for($user)->create([
-            'start_date'    => '2021-03-01',
-            'end_date'      => '2021-03-15',
-        ]);
-
-        $reservation2 = Reservation::factory()->for($user)->create([
-            'start_date'    => '2021-03-25',
-            'end_date'      => '2021-04-15',
+        $reservations = Reservation::factory()->for($user)->createMany([
+            [
+                'start_date'    => '2021-03-01',
+                'end_date'      => '2021-03-15',
+            ],
+            [
+                'start_date'    => '2021-03-25',
+                'end_date'      => '2021-04-15',
+            ],
+            [
+                'start_date'    => '2021-03-01',
+                'end_date'      => '2021-04-15',
+            ],
+            [   // Outside the date range
+                'start_date'    => '2021-02-25',
+                'end_date'      => '2021-03-02',
+            ],
+            [
+                'start_date'    => '2021-04-25',
+                'end_date'      => '2021-04-29',
+            ],
         ]);
 
         Reservation::factory()->create([
             'start_date'    => '2021-03-25',
             'end_date'      => '2021-04-15',
-        ]);
-
-        // Outside the date range
-        Reservation::factory()->for($user)->create([
-            'start_date'    => '2021-02-25',
-            'end_date'      => '2021-03-02',
-        ]);
-
-        Reservation::factory()->for($user)->create([
-            'start_date'    => '2021-04-25',
-            'end_date'      => '2021-04-29',
         ]);
 
         $this->actingAs($user);
@@ -87,24 +89,25 @@ class UserReservationControllerTest extends TestCase
         ]));
 
         $response->assertOk()
-                ->assertJsonCount(2, 'data')
+                ->assertJsonCount(3, 'data')
                 ->assertJson(fn (AssertableJson $json) =>
                     $json->hasAll('data', 'meta', 'links')
-                        ->has('data', 2)
                         ->has('data.0', fn ($json) =>
                             $json
-                                ->where('id', $reservation1->id)
+                                ->where('id', $reservations[0]->id)
                                 ->etc()
                         )
                         ->has('data.1', fn ($json) =>
                             $json
-                                ->where('id', $reservation2->id)
+                                ->where('id', $reservations[1]->id)
+                                ->etc()
+                        )
+                        ->has('data.2', fn ($json) =>
+                            $json
+                                ->where('id', $reservations[2]->id)
                                 ->etc()
                         )
                 );
-
-        $this->assertEquals([$reservation1->id, $reservation2->id],
-            collect($response->json('data'))->pluck('id')->toArray());
     }
 
     /** @test */
