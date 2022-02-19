@@ -107,6 +107,7 @@ class UserReservationController extends Controller
                 'end_date'      => $request->end_date,
                 'status'        => ReservationStatus::ACTIVE,
                 'price'         => $price,
+                'wifi_password' => str()->random(),
             ]);
         });
 

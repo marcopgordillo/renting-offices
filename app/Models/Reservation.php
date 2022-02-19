@@ -13,7 +13,7 @@ class Reservation extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'office_id', 'price', 'status', 'start_date', 'end_date',
+        'user_id', 'office_id', 'price', 'start_date', 'end_date', 'wifi_password',
     ];
 
     protected $casts = [
@@ -21,6 +21,7 @@ class Reservation extends Model
         'status'        => ReservationStatus::class,
         'start_date'    => 'immutable_date',
         'end_date'      => 'immutable_date',
+        'wifi_password' => 'encrypted',
     ];
 
     public function scopeBetweenDates($query, $from_date, $to_date)
