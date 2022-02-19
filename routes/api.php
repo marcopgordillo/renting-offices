@@ -36,7 +36,7 @@ Route::prefix('v1')->group(function() {
     // Route::apiResource('offices.images', OfficeImageController::class)->only(['store', 'destroy']);
 
     // User Reservations
-    Route::get('/reservations', [UserReservationController::class, 'index'])->name('reservations.index');
+    Route::apiResource('reservations', UserReservationController::class);
 
     // Host Reservations
     Route::get('/host/reservations', [HostReservationController::class, 'index'])->name('host.reservations.index');

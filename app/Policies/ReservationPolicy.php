@@ -41,7 +41,7 @@ class ReservationPolicy
      */
     public function create(User $user)
     {
-        //
+        return $user->tokenCan('reservations.create');
     }
 
     /**
