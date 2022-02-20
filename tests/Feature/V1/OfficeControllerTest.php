@@ -526,4 +526,32 @@ class OfficeControllerTest extends TestCase
         $response->assertUnprocessable()
                 ->assertInvalid('featured_image_id');
     }
+
+    /** @test */
+    public function it_filters_tags()
+    {
+        $tags = Tag::factory(2)->create();
+
+        $office = Office::factory()->hasAttached($tags)->create();
+        Office::factory()->hasAttached($tags->first())->create();
+        Office::factory()->create();
+
+        $response = $this->getJson(route('offices.index', [
+            'tags' => $tags->pluck('id')->toArray(),
+        ]));
+
+        $response->assertOk()
+                ->assertJsonCount(1, 'data')
+                ->assertJson(fn (AssertableJson $json) =>
+                    $json->hasAll('data', 'meta', 'links')
+                        ->has('data', 1, fn ($json) =>
+                            $json
+                                ->where('id', $office->id)
+                                ->has('tags', $tags->count())
+                                ->where('tags.0.id', $tags[0]->id)
+                                ->where('tags.1.id', $tags[1]->id)
+                                ->etc()
+                        )
+                    );
+    }
 }

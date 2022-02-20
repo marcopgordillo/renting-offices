@@ -40,6 +40,14 @@ class OfficeController extends Controller
                 ->ownsToUserId($request)
                 ->visitor($request)
                 ->nearestTo($request)
+                ->when($request->tags, fn ($builder) =>
+                    $builder->whereHas(
+                        'tags',
+                        fn ($builder) => $builder->whereIn('id', $request->tags),
+                        '=',
+                        count($request->tags)
+                    )
+                )
                 ->with(['reservations', 'user', 'images', 'tags'])
                 ->withCount(['reservations' =>
                     fn (Builder $builder) => $builder->where('status', ReservationStatus::ACTIVE)])
