@@ -15,6 +15,7 @@ use App\Notifications\NewHostReservation;
 use App\Notifications\NewUserReservation;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Notification;
@@ -151,5 +152,24 @@ class UserReservationController extends Controller
     public function destroy(Reservation $reservation)
     {
         //
+    }
+
+    public function cancel(Reservation $reservation)
+    {
+        $this->authorize('cancel', $reservation);
+
+        throw_if($reservation->user_id !== auth()->id()
+                || $reservation->status != ReservationStatus::ACTIVE
+                || $reservation->start_date < today()->toDateString(),
+            ValidationException::withMessages([
+                'reservation'   => 'You cannot cancel this reservation'
+            ])
+        );
+
+        $reservation->update([
+            'status'    => ReservationStatus::CANCELLED,
+        ]);
+
+        return response('', Response::HTTP_NO_CONTENT);
     }
 }

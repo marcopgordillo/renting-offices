@@ -401,4 +401,88 @@ class UserReservationControllerTest extends TestCase
                 ->assertInvalid('office_id')
                 ->assertJsonValidationErrors(['office_id' => 'You cannot make a reservation on a hidden office']);
     }
+
+    /** @test */
+    public function it_cancel_a_reservation()
+    {
+        $user = User::factory()->create();
+        $office = Office::factory()->create();
+        $reservation = Reservation::factory()->for($user)->for($office)->create();
+
+        $this->actingAs($user);
+
+        $response = $this->deleteJson(route('reservations.cancel', $reservation));
+
+        $response->assertNoContent();
+
+        $this->assertDatabaseHas('reservations', [
+            'id'        => $reservation->id,
+            'status'    => ReservationStatus::CANCELLED,
+        ]);
+    }
+
+    /** @test */
+    public function it_cannot_cancel_a_reservation_that_owns_other_user()
+    {
+        $user = User::factory()->create();
+        $office = Office::factory()->create();
+        $reservation = Reservation::factory()->for($office)->create();
+
+        $this->actingAs($user);
+
+        $response = $this->deleteJson(route('reservations.cancel', $reservation));
+
+        $response->assertUnprocessable()
+                ->assertInvalid('reservation')
+                ->assertJsonValidationErrors(['reservation' => 'You cannot cancel this reservation']);
+
+        $this->assertDatabaseHas('reservations', [
+            'id'        => $reservation->id,
+            'status'    => ReservationStatus::ACTIVE,
+        ]);
+    }
+
+    /** @test */
+    public function it_cannot_cancel_a_reservation_that_doesnt_has_status_active()
+    {
+        $user = User::factory()->create();
+        $office = Office::factory()->create();
+        $reservation = Reservation::factory()->for($office)->for($user)->cancelled()->create();
+
+        $this->actingAs($user);
+
+        $response = $this->deleteJson(route('reservations.cancel', $reservation));
+
+        $response->assertUnprocessable()
+                ->assertInvalid('reservation')
+                ->assertJsonValidationErrors(['reservation' => 'You cannot cancel this reservation']);
+
+        $this->assertDatabaseHas('reservations', [
+            'id'        => $reservation->id,
+            'status'    => ReservationStatus::CANCELLED,
+        ]);
+    }
+
+    /** @test */
+    public function it_cannot_cancel_a_reservation_that_has_a_start_date_before_than_today()
+    {
+        $user = User::factory()->create();
+        $office = Office::factory()->create();
+        $reservation = Reservation::factory()->for($office)->for($user)->create([
+            'start_date'    => today()->subDay(),
+        ]);
+
+        $this->actingAs($user);
+
+        $response = $this->deleteJson(route('reservations.cancel', $reservation));
+
+        $response->assertUnprocessable()
+                ->assertInvalid('reservation')
+                ->assertJsonValidationErrors(['reservation' => 'You cannot cancel this reservation']);
+
+        $this->assertDatabaseHas('reservations', [
+            'id'        => $reservation->id,
+            'status'    => ReservationStatus::ACTIVE,
+        ]);
+    }
 }

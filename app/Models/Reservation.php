@@ -13,7 +13,7 @@ class Reservation extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'office_id', 'price', 'start_date', 'end_date', 'wifi_password',
+        'user_id', 'office_id', 'price', 'start_date', 'status', 'end_date', 'wifi_password',
     ];
 
     protected $casts = [

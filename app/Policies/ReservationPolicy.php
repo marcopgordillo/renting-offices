@@ -11,6 +11,18 @@ class ReservationPolicy
     use HandlesAuthorization;
 
     /**
+     * Perform pre-authorization checks.
+     *
+     * @param  \App\Models\User  $user
+     * @param  string  $ability
+     * @return void|bool
+     */
+    public function before(User $user, $ability)
+    {
+        return $user->isAdmin;
+    }
+
+    /**
      * Determine whether the user can view any models.
      *
      * @param  \App\Models\User  $user
@@ -66,6 +78,11 @@ class ReservationPolicy
     public function delete(User $user, Reservation $reservation)
     {
         //
+    }
+
+    public function cancel(User $user, Reservation $reservation)
+    {
+        return $user->tokenCan('reservations.cancel');
     }
 
     /**

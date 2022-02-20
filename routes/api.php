@@ -5,6 +5,7 @@ use App\Http\Controllers\V1\TagController;
 use App\Http\Controllers\V1\OfficeController;
 use App\Http\Controllers\V1\OfficeImageController;
 use App\Http\Controllers\V1\UserReservationController;
+use App\Notifications\UserReservationStarting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -37,6 +38,7 @@ Route::prefix('v1')->group(function() {
 
     // User Reservations
     Route::apiResource('reservations', UserReservationController::class);
+    Route::delete('/reservations/{reservation}/cancel', [UserReservationController::class, 'cancel'])->name('reservations.cancel');
 
     // Host Reservations
     Route::get('/host/reservations', [HostReservationController::class, 'index'])->name('host.reservations.index');
