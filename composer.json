@@ -10,6 +10,7 @@
         "guzzlehttp/guzzle": "^7.0.1",
         "innocenzi/laravel-vite": "0.2.0-beta3",
         "laravel/framework": "^9.0",
+        "laravel/octane": "^1.2",
         "laravel/sanctum": "^2.11",
         "laravel/tinker": "^2.5"
     },
