@@ -45,7 +45,7 @@ class SendDueReservationsNotifications extends Command
         Reservation::query()
                 ->with('office.user')
                 ->where('status', ReservationStatus::ACTIVE)
-                ->where('start_date', today()->toDateString())
+                ->whereBetween('start_date', [today()->toDateString(), today()->addDay()->toDateString()])
                 ->each(function($reservation) {
                     Notification::send($reservation->user, new UserReservationStarting($reservation));
                     Notification::send($reservation->office->user, new HostReservationStarting($reservation));

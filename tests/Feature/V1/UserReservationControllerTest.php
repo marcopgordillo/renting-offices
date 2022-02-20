@@ -2,14 +2,18 @@
 
 namespace Tests\Feature\V1;
 
+use App\Console\Commands\SendDueReservationsNotifications;
 use App\Enums\ReservationStatus;
 use App\Models\Office;
 use App\Models\Reservation;
 use App\Models\User;
+use App\Notifications\HostReservationStarting;
 use App\Notifications\NewUserReservation;
 use App\Notifications\NewHostReservation;
+use App\Notifications\UserReservationStarting;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Testing\Fluent\AssertableJson;
 use Tests\TestCase;
@@ -245,6 +249,23 @@ class UserReservationControllerTest extends TestCase
         Notification::assertSentTo($office->user, NewHostReservation::class);
 
         $response->assertCreated();
+    }
+
+    /** @test */
+    public function it_send_notifications_on_start_date()
+    {
+        Notification::fake();
+
+        $user = User::factory()->create();
+        $office = Office::factory()->create();
+        $reservation = Reservation::factory()->for($user)->for($office)->create([
+            'start_date'    => today()->toDateString(),
+        ]);
+
+        Artisan::call(SendDueReservationsNotifications::class);
+
+        Notification::assertSentTo($user, UserReservationStarting::class);
+        Notification::assertSentTo($office->user, HostReservationStarting::class);
     }
 
     /** @test */
