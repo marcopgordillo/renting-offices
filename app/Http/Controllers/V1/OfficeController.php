@@ -65,7 +65,9 @@ class OfficeController extends Controller
     public function store(StoreOfficeRequest $request)
     {
         $office = DB::transaction(function () use($request) {
-            $office = Auth::user()->offices()->create(
+            /** @var User */
+            $user = $request->user();
+            $office = $user->offices()->create(
                 [
                     'approval_status'   => ApprovalStatus::PENDING,
                     ...Arr::except($request->validated(), ['tags'])
@@ -113,6 +115,7 @@ class OfficeController extends Controller
 
         $office->fill(Arr::except($attributes, ['tags']));
 
+        // The $request has values changed
         if ($requiresReview = $office->isDirty(['lat', 'lng', 'price_per_day'])) {
             $office->fill(['approval_status' => ApprovalStatus::PENDING]);
         }
